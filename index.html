@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Jet Buster Challenge</title>
+  <title>Jet Buster - Sternenjagd</title>
   <style>
     /* Allgemeine Stile */
     :root {
       --jet-color: #00BFFF; /* Himmelblau für den Jet */
-      --ball-color-1: #d9534f; /* Rot */
-      --ball-color-2: #f0ad4e; /* Orange */
-      --ball-color-3: #5cb85c; /* Grün */
+      --star-color-1: #ffd700; /* Gold */
+      --star-color-2: #ff8c00; /* Dunkelorange */
+      --star-color-3: #ff4500; /* Rot-Orange */
       --text-color: #ffffff;
       --hud-bg: rgba(0, 0, 0, 0.7);
       --joystick-red: #d9534f; /* Roter Joystick */
-      --dpad-grey: #6c757d;   /* Grau für D-Pad */
+      --console-bg: #333; 
     }
     html, body {
       height: 100%;
@@ -25,7 +25,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      flex-direction: column; /* Für konsolenähnliches Layout */
+      flex-direction: column;
     }
     #gameWrap {
       display: flex;
@@ -34,8 +34,8 @@
       position: relative;
       width: 100%;
       max-width: 800px;
-      height: 100%; /* Passt sich an verfügbaren Platz an */
-      flex-grow: 1; /* Nimmt verfügbaren Platz ein */
+      height: 100%;
+      flex-grow: 1;
     }
     /* Canvas */
     canvas {
@@ -43,8 +43,8 @@
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
       image-rendering: pixelated; 
       width: 100%; 
-      flex-grow: 1; /* Canvas nimmt den größten Teil des Platzes ein */
-      background-color: #78c0ff;
+      flex-grow: 1;
+      background-color: #000033; /* Dunklerer Weltraum-Hintergrund */
       flex-shrink: 0;
     }
     
@@ -60,30 +60,29 @@
       background: var(--hud-bg);
       color: var(--text-color);
       font-size: 10px;
-      border-top: 3px solid #333; /* Oben statt unten */
+      border-top: 3px solid #333;
     }
     #info-left, #info-right {
       display: flex;
       gap: 15px;
     }
 
-    /* Game-Over/Pause Overlay */
+    /* Game-Over/Start Overlay */
     #overlay {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.85);
         color: white;
-        display: flex;
+        display: none;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         text-align: center;
         font-size: 18px;
         z-index: 200;
-        display: none;
     }
     #overlay h2 { margin-bottom: 15px; font-size: 24px; }
     #overlay p { margin-bottom: 20px; font-size: 14px; }
@@ -107,10 +106,10 @@
     #controller-area {
         width: 100%;
         max-width: 800px;
-        height: 150px; /* Feste Höhe für den Controller-Bereich */
-        background: #333;
+        height: 150px; 
+        background: var(--console-bg);
         display: flex;
-        justify-content: space-between;
+        justify-content: center; /* Joystick zentrieren */
         align-items: center;
         padding: 10px;
         box-sizing: border-box;
@@ -118,7 +117,7 @@
         box-shadow: inset 0 5px 10px rgba(0,0,0,0.5);
     }
 
-    /* Joystick-Stile (links) */
+    /* Joystick-Stile (zentriert) */
     #joystick-area {
         position: relative;
         width: 120px;
@@ -126,8 +125,6 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        /* Debug-Border */
-        /* border: 1px solid white; */
     }
     #joystick-base {
         width: 100px;
@@ -152,58 +149,9 @@
         transform: translate(-50%, -50%);
         box-shadow: 0 3px 5px rgba(0,0,0,0.5);
         cursor: grab;
-        touch-action: none; /* Wichtig für Touch-Drag */
+        touch-action: none; 
         border: 2px solid #a00;
     }
-
-    /* D-Pad Stile (rechts) */
-    #dpad-area {
-        width: 120px;
-        height: 120px;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        grid-template-rows: repeat(3, 1fr);
-        gap: 1px;
-        background: #444; /* Hintergrund für das Kreuz */
-        border-radius: 5px;
-        overflow: hidden; /* Für saubere Kanten */
-    }
-    .dpad-btn {
-        background: var(--dpad-grey);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: white;
-        font-size: 10px;
-        cursor: pointer;
-        user-select: none;
-        touch-action: manipulation;
-        border: 1px solid #555;
-        box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
-    }
-    .dpad-btn:active {
-        background: #888;
-        box-shadow: inset 0 0 3px rgba(0,0,0,0.5);
-    }
-    /* Platzhalter für die Mitte */
-    #dpad-center {
-        background: #555;
-        border: none;
-    }
-    /* Pfeile für D-Pad */
-    .dpad-btn::before {
-        content: '';
-        display: block;
-        width: 0;
-        height: 0;
-        border-style: solid;
-        border-color: transparent;
-        border-width: 8px 8px 8px 8px;
-    }
-    #dpad-up::before { border-bottom-color: white; transform: translateY(2px); }
-    #dpad-down::before { border-top-color: white; transform: translateY(-2px); }
-    #dpad-left::before { border-right-color: white; transform: translateX(2px); }
-    #dpad-right::before { border-left-color: white; transform: translateX(-2px); }
 
     /* Lade-Schriftart */
     @font-face {
@@ -246,20 +194,6 @@
         <div id="joystick-base"></div>
         <div id="joystick-handle"></div>
     </div>
-
-    <div id="dpad-area">
-        <div class="dpad-btn" id="dpad-up" data-key="up"></div>
-        <div class="dpad-btn" id="dpad-center"></div>
-        <div class="dpad-btn" id="dpad-up-right" data-key="up-right"></div>
-        
-        <div class="dpad-btn" id="dpad-left" data-key="left"></div>
-        <div class="dpad-btn" id="dpad-down-center"></div>
-        <div class="dpad-btn" id="dpad-right" data-key="right"></div>
-        
-        <div class="dpad-btn" id="dpad-down-left" data-key="down-left"></div>
-        <div class="dpad-btn" id="dpad-center-down"></div>
-        <div class="dpad-btn" id="dpad-down" data-key="down"></div>
-    </div>
   </div>
 
   <script>
@@ -269,7 +203,6 @@
 
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
-    // Setze eine fixe Canvas-Größe für konsistentes Verhalten
     const CANVAS_WIDTH = 800;
     const CANVAS_HEIGHT = 450;
     canvas.width = CANVAS_WIDTH;
@@ -279,13 +212,13 @@
     let gameRunning = false;
     let currentLevel = 1;
     let score = 0;
-    let timeLeft = 120; // 2 Minuten Spielzeit
-    let difficultyMultiplier = 1; // 1=Leicht, 2=Mittel, 3=Schwer
+    let timeLeft = 120;
+    let difficultyMultiplier = 1;
     let lastTime = 0;
     let animationFrameId;
 
     // Jet-Parameter
-    const JET_SPEED = 5; // Basis-Geschwindigkeit des Jets
+    const JET_SPEED = 5;
     const JET_WIDTH = 50;
     const JET_HEIGHT = 30;
 
@@ -299,60 +232,40 @@
         ySpeed: 0, 
     };
 
-    // Kugel-Parameter
-    const BALL_RADIUS = 10;
+    // Stern-Kugel Parameter
+    const STAR_SIZE = 12; // Radius der Stern-Kugel
     let ballSpawnTimer = 0;
-    let ballSpawnRate = 60; // Alle 60 Frames (1s bei 60 FPS)
+    let ballSpawnRate = 60; 
 
     // Spiel-Objekte
-    let balls = []; // Array für die fallenden Kugeln
-    
-    // Steuerung (für Tastatur und Touch-D-Pad)
-    window.keys = { 
-        left: false, 
-        right: false, 
-        up: false, // Für D-Pad auf/ab
-        down: false,
-    }; 
+    let balls = []; 
     
     // Joystick-Steuerung
     let joystickActive = false;
-    let joystickStartX = 0;
-    let joystickStartY = 0;
-    let joystickOffsetX = 0; // Relative Position des Griffs zur Mitte
+    let joystickOffsetX = 0; 
     let joystickOffsetY = 0;
-    const JOYSTICK_MAX_DIST = 30; // Maximaler Bewegungsradius des Griffs
-    const JOYSTICK_SENSITIVITY = 0.1; // Wie stark Joystick-Ausschlag die Geschwindigkeit beeinflusst
+    const JOYSTICK_MAX_DIST = 30; 
+    const JOYSTICK_SENSITIVITY = 0.1;
 
-    // HUD-Elemente
-    const hudElements = {
-        score: document.getElementById('score'),
-        level: document.getElementById('level'),
-        time: document.getElementById('time'),
-        difficulty: document.getElementById('difficulty'),
-        overlay: document.getElementById('overlay'),
-        overlayTitle: document.getElementById('overlay-title'),
-        overlayText: document.getElementById('overlay-text'),
-        overlayButton: document.getElementById('overlay-button'),
-        difficultySelect: document.getElementById('difficulty-select'),
-    };
-    
-    // Level-Daten (Geschwindigkeit des Falls)
+    // HUD-Elemente... (wie im vorherigen Code)
+
+    // Level-Daten... (wie im vorherigen Code)
     const LEVEL_DATA = [
-        { level: 1, speedFactor: 1.0 }, // Start
+        { level: 1, speedFactor: 1.0 }, 
         { level: 2, speedFactor: 1.2 }, 
         { level: 3, speedFactor: 1.5 }, 
         { level: 4, speedFactor: 1.8 }, 
         { level: 5, speedFactor: 2.2 }, 
         { level: 6, speedFactor: 2.7 }, 
-        { level: 7, speedFactor: 3.5 }, // Maximales Tempo
+        { level: 7, speedFactor: 3.5 },
     ];
 
-    /**
-     * Startet das Spiel mit gewählter Schwierigkeit.
-     * @param {number} diff - 1, 2 oder 3
-     */
-    window.startGame = function(diff) {
+
+    // ***************************************************************
+    // FUNKTIONEN
+    // ***************************************************************
+    
+    function startGame(diff) {
         difficultyMultiplier = diff;
         currentLevel = 1;
         score = 0;
@@ -360,11 +273,9 @@
         balls = [];
         ballSpawnTimer = 0;
 
-        // Schwierigkeitstext
         const diffNames = ['LEICHT', 'MITTEL', 'SCHWER'];
-        hudElements.difficulty.textContent = diffNames[diff - 1];
+        document.getElementById('difficulty').textContent = diffNames[diff - 1];
         
-        // Spieler-Reset
         player.x = CANVAS_WIDTH / 2 - JET_WIDTH / 2;
         player.y = CANVAS_HEIGHT / 2 - JET_HEIGHT / 2;
         player.xSpeed = 0;
@@ -374,166 +285,118 @@
         gameRunning = true;
         lastTime = performance.now();
         
-        // Start des Game Loops
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         animationFrameId = requestAnimationFrame(gameLoop);
         
         updateHUD();
-    };
+    }
 
-    /**
-     * Erstellt eine neue fallende Kugel.
-     */
     function spawnBall() {
-        const ballX = Math.random() * (CANVAS_WIDTH - BALL_RADIUS * 2) + BALL_RADIUS;
+        const ballX = Math.random() * (CANVAS_WIDTH - STAR_SIZE * 2) + STAR_SIZE;
         const speedFactor = LEVEL_DATA[currentLevel - 1].speedFactor;
         
-        // Kugel-Geschwindigkeit basierend auf Level und Schwierigkeit
-        const baseSpeed = 1.5; // Basis-Geschwindigkeit für alle Bälle
+        const baseSpeed = 1.5;
         const ySpeed = baseSpeed * speedFactor * difficultyMultiplier;
         
-        // Zufällige Farbe
-        const colors = ['var(--ball-color-1)', 'var(--ball-color-2)', 'var(--ball-color-3)'];
+        const colors = ['var(--star-color-1)', 'var(--star-color-2)', 'var(--star-color-3)'];
         const color = colors[Math.floor(Math.random() * colors.length)];
         
         balls.push({
             x: ballX,
-            y: -BALL_RADIUS, // Start über dem Bildschirm
-            radius: BALL_RADIUS,
+            y: -STAR_SIZE,
+            radius: STAR_SIZE,
             ySpeed: ySpeed,
             color: color,
-            type: 'ball',
+            type: 'star', // Typ geändert
             active: true
         });
     }
 
-    /**
-     * Aktualisiert das HUD.
-     */
     function updateHUD() {
-        hudElements.score.textContent = `${score} / 100`;
-        hudElements.level.textContent = currentLevel;
-        hudElements.time.textContent = Math.max(0, Math.floor(timeLeft));
+        document.getElementById('score').textContent = `${score} / 100`;
+        document.getElementById('level').textContent = currentLevel;
+        document.getElementById('time').textContent = Math.max(0, Math.floor(timeLeft));
     }
 
-    /**
-     * Bewegt zum nächsten Level (Erhöhung der Ball-Geschw.).
-     */
     function nextLevel() {
         if (currentLevel < 7) {
             currentLevel++;
-            
-            // Anpassung der Spawn-Rate (schnelleres Spawnen in höheren Leveln)
             ballSpawnRate = Math.max(20, 60 - currentLevel * 5); 
         }
     }
 
-    // ***************************************************************
-    // SPIEL-LOGIK (UPDATE)
-    // ***************************************************************
-    
-    /**
-     * Verarbeitet die Spieler-Eingaben für Jet-Bewegung.
-     */
     function handleInput() {
-        // Joystick-Input für horizontale Bewegung
+        // Joystick-Input für 8-Wege-Bewegung
         let targetXSpeed = joystickOffsetX * JOYSTICK_SENSITIVITY * JET_SPEED;
         let targetYSpeed = joystickOffsetY * JOYSTICK_SENSITIVITY * JET_SPEED;
-
-        // Tastatur/D-Pad Input
-        if (window.keys.left) targetXSpeed = -JET_SPEED;
-        if (window.keys.right) targetXSpeed = JET_SPEED;
-        if (window.keys.up) targetYSpeed = -JET_SPEED;
-        if (window.keys.down) targetYSpeed = JET_SPEED;
-
-        // Wenn beide Tasten (Tastatur/D-Pad und Joystick) gedrückt werden, 
-        // priorisieren wir hier den Joystick für X, D-Pad für Y,
-        // oder Sie können eine Mischung/Addition machen.
-        // Für den Anfang: Wenn D-Pad gedrückt, überschreibt es den Joystick für diese Achse.
-        if (window.keys.left || window.keys.right) player.xSpeed = targetXSpeed;
-        else player.xSpeed = targetXSpeed;
-
-        if (window.keys.up || window.keys.down) player.ySpeed = targetYSpeed;
-        else player.ySpeed = targetYSpeed;
 
         // Sanftere Beschleunigung/Abbremsung
         player.xSpeed += (targetXSpeed - player.xSpeed) * 0.2; 
         player.ySpeed += (targetYSpeed - player.ySpeed) * 0.2;
     }
 
-    /**
-     * Prüft die Kollision zwischen Spieler (Rechteck) und Kugel (Kreis).
-     * @param {Object} playerRect 
-     * @param {Object} ballCircle 
-     * @returns {boolean}
-     */
+    // Prüft Kollision zwischen Jet (Rechteck) und Stern (Kreis)
     function isCollidingRectCircle(rect, circle) {
-        // Findet den nächsten Punkt auf dem Rechteck zum Kreismittelpunkt
         const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
         const closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
 
-        // Berechnet den Abstand
         const distX = circle.x - closestX;
         const distY = circle.y - closestY;
 
-        // Wenn der Abstand kleiner ist als der Radius, kollidieren sie
         return (distX * distX + distY * distY) < (circle.radius * circle.radius);
     }
     
     function update(deltaTime) {
         if (!gameRunning) return;
 
-        // 1. Zeit-Update und Level-Check
         timeLeft -= deltaTime / 1000;
         
-        // Level-Wechsel alle 15 Sekunden (120s / 7 Level = ca. 17s pro Level)
+        // Level-Wechsel alle 15 Sekunden
         if (currentLevel < 7 && timeLeft > 0 && Math.floor(timeLeft) % 15 === 0 && Math.floor(timeLeft) !== Math.floor(timeLeft + (deltaTime / 1000))) { 
              nextLevel();
         }
         
         if (timeLeft <= 0) {
-            gameOver(true); // Spielende durch Zeit
+            gameOver(true); 
             return;
         }
 
-        // 2. Spieler-Bewegung (Jet)
+        // Spieler-Bewegung (Jet)
         handleInput();
         
         player.x += player.xSpeed;
         player.y += player.ySpeed;
         
-        // Randbegrenzung des Jets (Jet darf den Bildschirm nicht verlassen)
+        // Randbegrenzung
         if (player.x < 0) player.x = 0;
         if (player.x + player.width > CANVAS_WIDTH) player.x = CANVAS_WIDTH - player.width;
         if (player.y < 0) player.y = 0;
         if (player.y + player.height > CANVAS_HEIGHT) player.y = CANVAS_HEIGHT - player.height;
         
-        // 3. Kugel-Logik
+        // Kugel-Logik
         ballSpawnTimer++;
         if (ballSpawnTimer >= ballSpawnRate) {
             spawnBall();
             ballSpawnTimer = 0;
         }
 
-        // Kugel-Bewegung und Kollision
+        // Stern-Kugel Bewegung und Kollision
         for (let i = balls.length - 1; i >= 0; i--) {
             const ball = balls[i];
             
             ball.y += ball.ySpeed;
 
-            // Kollision mit Spieler (Jet fängt Kugel ein)
             if (isCollidingRectCircle(player, { x: ball.x, y: ball.y, radius: ball.radius })) {
                 score++;
-                balls.splice(i, 1); // Kugel platzen lassen
+                balls.splice(i, 1); 
                 
                 if (score >= 100) {
-                     gameOver(true); // Spielende durch Ziel-Score
+                     gameOver(true); 
                      return;
                 }
             } 
-            // Boden-Kollision (Game Over)
-            else if (ball.y + ball.radius > CANVAS_HEIGHT) { // Kugel berührt unteren Rand
-                gameOver(false); // Spielende durch Berührung des Bodens
+            else if (ball.y + ball.radius > CANVAS_HEIGHT) { // Bodenkontakt
+                gameOver(false); 
                 return;
             }
         }
@@ -550,15 +413,40 @@
         ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
     }
 
-    function drawBall(ball) {
-        ctx.fillStyle = ball.color;
+    // Zeichnet eine sternförmige Kugel
+    function drawStar(star) {
+        const spikes = 5;
+        const outerRadius = star.radius;
+        const innerRadius = star.radius / 2;
+        let rot = Math.PI / 2 * 3;
+        let x = star.x;
+        let y = star.y;
+        let step = Math.PI / spikes;
+
+        ctx.strokeStyle = star.color;
+        ctx.fillStyle = star.color;
         ctx.beginPath();
-        ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+        ctx.moveTo(x, y - outerRadius);
+
+        for (let i = 0; i < spikes; i++) {
+            x = star.x + Math.cos(rot) * outerRadius;
+            y = star.y + Math.sin(rot) * outerRadius;
+            ctx.lineTo(x, y);
+            rot += step;
+
+            x = star.x + Math.cos(rot) * innerRadius;
+            y = star.y + Math.sin(rot) * innerRadius;
+            ctx.lineTo(x, y);
+            rot += step;
+        }
+        ctx.lineTo(star.x, star.y - outerRadius);
+        ctx.closePath();
         ctx.fill();
+        ctx.stroke();
     }
 
     function drawJet() {
-        // Einfache Jet-Form
+        // ... (Jet Zeichnung wie im vorherigen Code)
         ctx.fillStyle = 'var(--jet-color)';
         // Hauptkörper
         drawRect(player.x, player.y + player.height * 0.1, player.width, player.height * 0.8, 'var(--jet-color)');
@@ -576,23 +464,20 @@
         ctx.fill();
 
         // Cockpit
-        drawRect(player.x + player.width * 0.25, player.y, player.width * 0.5, player.height * 0.4, '#ADD8E6'); // Helles Blau
+        drawRect(player.x + player.width * 0.25, player.y, player.width * 0.5, player.height * 0.4, '#ADD8E6');
 
         // Düsen (hinten)
-        drawRect(player.x + player.width * 0.1, player.y + player.height * 0.9, player.width * 0.3, player.height * 0.1, '#FF4500'); // Orange-Rot
+        drawRect(player.x + player.width * 0.1, player.y + player.height * 0.9, player.width * 0.3, player.height * 0.1, '#FF4500');
         drawRect(player.x + player.width * 0.6, player.y + player.height * 0.9, player.width * 0.3, player.height * 0.1, '#FF4500');
     }
 
     function draw() {
-        // Hintergrund löschen
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         
-        // Kugeln zeichnen
         for (const ball of balls) {
-            drawBall(ball);
+            drawStar(ball);
         }
 
-        // Jet zeichnen
         drawJet();
     }
 
@@ -612,6 +497,7 @@
         animationFrameId = requestAnimationFrame(gameLoop);
     }
     
+    // ... (gameOver, showOverlay, hideOverlay, restartGame Funktionen wie im vorherigen Code)
     function gameOver(win) {
         cancelAnimationFrame(animationFrameId);
         gameRunning = false;
@@ -620,71 +506,63 @@
         
         if (win && score >= 100) {
             title = 'FANTASTISCH! SIEG!';
-            message = `Ziel erreicht (${score} Kugeln) und ${Math.floor(timeLeft)}s Restzeit!<br>Deine Schwierigkeit: ${hudElements.difficulty.textContent}`;
+            message = `Ziel erreicht (${score} Sterne) und ${Math.floor(timeLeft)}s Restzeit!<br>Deine Schwierigkeit: ${document.getElementById('difficulty').textContent}`;
         } else if (win && timeLeft <= 0) {
             title = 'ZEIT ABGELAUFEN!';
-            message = `Du hast 2 Minuten überlebt, aber nur ${score} Kugeln gefangen.`;
+            message = `Du hast 2 Minuten überlebt, aber nur ${score} Sterne gefangen.`;
         } else {
             title = 'GAME OVER';
-            message = `Eine Kugel hat den Boden berührt.<br>Dein Score: ${score} Kugeln.`;
+            message = `Ein Stern hat den Bildschirm verlassen.<br>Dein Score: ${score} Sterne.`;
         }
         
-        showOverlay(title, message, 'Neues Spiel starten');
-    }
-
-    function showOverlay(title, text, buttonText, buttonAction = window.restartGame) {
-        hudElements.overlayTitle.textContent = title;
-        hudElements.overlayText.innerHTML = text;
-        hudElements.overlayButton.textContent = buttonText;
-        hudElements.overlayButton.onclick = buttonAction;
+        document.getElementById('overlayTitle').textContent = title;
+        document.getElementById('overlayText').innerHTML = message;
+        document.getElementById('overlayButton').textContent = 'Neues Spiel starten';
+        document.getElementById('overlayButton').onclick = window.restartGame;
         
-        if (gameRunning === false && title !== 'JET BUSTER') {
-            hudElements.difficultySelect.style.display = 'none';
-            hudElements.overlayButton.style.display = 'block';
-        } else {
-            hudElements.difficultySelect.style.display = 'flex';
-            hudElements.overlayButton.style.display = 'none';
-        }
-        
-        hudElements.overlay.style.display = 'flex';
+        document.getElementById('difficultySelect').style.display = 'none';
+        document.getElementById('overlayButton').style.display = 'block';
+        document.getElementById('overlay').style.display = 'flex';
     }
-
+    
     function hideOverlay() {
-        hudElements.overlay.style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
     }
     
     window.restartGame = function() {
-        showOverlay('JET BUSTER', 'Wähle eine Schwierigkeit, um zu starten.', 'Neu starten', () => {});
+        document.getElementById('overlayTitle').textContent = 'JET BUSTER';
+        document.getElementById('overlayText').innerHTML = 'Wähle eine Schwierigkeit, um zu starten.';
+        document.getElementById('overlayButton').style.display = 'none';
+        document.getElementById('difficultySelect').style.display = 'flex';
+        document.getElementById('overlay').style.display = 'flex';
     };
+
 
     // ***************************************************************
     // EVENT LISTENER
     // ***************************************************************
 
-    // Tastatur-Events
+    // Tastatur-Events für Backup-Steuerung (optional, da Joystick primär ist)
     document.addEventListener('keydown', (e) => {
-        const key = e.key.toUpperCase();
-        if (key === 'A' || e.key === 'ArrowLeft') window.keys.left = true;
-        if (key === 'D' || e.key === 'ArrowRight') window.keys.right = true;
-        if (key === 'W' || e.key === 'ArrowUp') window.keys.up = true;
-        if (key === 'S' || e.key === 'ArrowDown') window.keys.down = true;
+        // Wir lassen die Tastatursteuerung als Backup/Alternative zu
+        if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') joystickOffsetX = -JOYSTICK_MAX_DIST;
+        if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') joystickOffsetX = JOYSTICK_MAX_DIST;
+        if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') joystickOffsetY = -JOYSTICK_MAX_DIST;
+        if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') joystickOffsetY = JOYSTICK_MAX_DIST;
     });
 
     document.addEventListener('keyup', (e) => {
-        const key = e.key.toUpperCase();
-        if (key === 'A' || e.key === 'ArrowLeft') window.keys.left = false;
-        if (key === 'D' || e.key === 'ArrowRight') window.keys.right = false;
-        if (key === 'W' || e.key === 'ArrowUp') window.keys.up = false;
-        if (key === 'S' || e.key === 'ArrowDown') window.keys.down = false;
+        if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft' || e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') joystickOffsetX = 0;
+        if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp' || e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') joystickOffsetY = 0;
     });
 
     // Joystick-Events
     const joystickHandle = document.getElementById('joystick-handle');
-    const joystickBase = document.getElementById('joystick-base');
     const joystickArea = document.getElementById('joystick-area');
+    const joystickBase = document.getElementById('joystick-base');
 
-    let initialHandleX, initialHandleY;
     let initialPointerX, initialPointerY;
+    let baseCenterX, baseCenterY;
 
     function getPointerPosition(e) {
         if (e.touches && e.touches.length > 0) {
@@ -694,15 +572,17 @@
     }
 
     function startDrag(e) {
-        e.preventDefault(); // Verhindert Scrollen oder Zoomen
+        e.preventDefault(); 
         joystickActive = true;
         const pointerPos = getPointerPosition(e);
+        
+        // Zentrum der Basis berechnen
+        const baseRect = joystickBase.getBoundingClientRect();
+        baseCenterX = baseRect.left + baseRect.width / 2;
+        baseCenterY = baseRect.top + baseRect.height / 2;
+        
         initialPointerX = pointerPos.x;
         initialPointerY = pointerPos.y;
-
-        const handleRect = joystickHandle.getBoundingClientRect();
-        initialHandleX = handleRect.left + handleRect.width / 2;
-        initialHandleY = handleRect.top + handleRect.height / 2;
 
         joystickHandle.style.cursor = 'grabbing';
     }
@@ -712,10 +592,10 @@
         e.preventDefault(); 
         const pointerPos = getPointerPosition(e);
 
-        let deltaX = pointerPos.x - initialPointerX;
-        let deltaY = pointerPos.y - initialPointerY;
-
-        // Begrenze die Bewegung auf den JOYSTICK_MAX_DIST
+        let deltaX = pointerPos.x - baseCenterX;
+        let deltaY = pointerPos.y - baseCenterY;
+        
+        // Begrenze die Bewegung
         const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
         if (distance > JOYSTICK_MAX_DIST) {
             const angle = Math.atan2(deltaY, deltaX);
@@ -742,36 +622,7 @@
     joystickHandle.addEventListener('pointerdown', startDrag);
     document.addEventListener('pointermove', drag);
     document.addEventListener('pointerup', endDrag);
-    document.addEventListener('pointercancel', endDrag); // Falls der Touch abgebrochen wird
-
-    // D-Pad Events
-    const dpadButtons = document.querySelectorAll('#dpad-area .dpad-btn');
-    dpadButtons.forEach(btn => {
-        const key = btn.dataset.key;
-        if (key) {
-            btn.addEventListener('pointerdown', (e) => {
-                e.preventDefault(); 
-                if (key === 'up') window.keys.up = true;
-                if (key === 'down') window.keys.down = true;
-                if (key === 'left') window.keys.left = true;
-                if (key === 'right') window.keys.right = true;
-            });
-            btn.addEventListener('pointerup', () => {
-                if (key === 'up') window.keys.up = false;
-                if (key === 'down') window.keys.down = false;
-                if (key === 'left') window.keys.left = false;
-                if (key === 'right') window.keys.right = false;
-            });
-            btn.addEventListener('pointerleave', () => {
-                // Wenn der Finger vom Button gleitet
-                if (key === 'up') window.keys.up = false;
-                if (key === 'down') window.keys.down = false;
-                if (key === 'left') window.keys.left = false;
-                if (key === 'right') window.keys.right = false;
-            });
-        }
-    });
-
+    document.addEventListener('pointercancel', endDrag); 
 
     // Initialisierung des Spiels
     document.addEventListener('DOMContentLoaded', () => {
