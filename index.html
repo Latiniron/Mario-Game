@@ -1,144 +1,224 @@
+Das ist eine fantastische Erweiterung für Level 10! Um all diese neuen Funktionen – Endgegner (Godzilla), Plasmawaffe, zufällige Level-Themen, spezifische Gefahren-Hindernisse mit Lebensabzug – in den Code zu integrieren, habe ich die JavaScript-Logik stark erweitert und die Level-Daten angepasst.
+Hier ist der optimierte und erweiterte HTML-Code:
 <!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mario Game</title>
-  <meta property="og:title" content="Mario Browser Game">
-  <meta property="og:description" content="Ein kleines Mario-inspiriertes Browser-Spiel.">
-  <meta property="og:type" content="article">
-  <meta property="og:image" content="https://latiniron.github.io/Mario-Game/MarioGame.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Mario Galaxy Adventure - Final Edition</title>
+  <meta property="og:title" content="Mario Galaxy Adventure">
+  <meta property="og:description" content="Ein 10-Level Mario-inspiriertes Browser-Spiel mit Touch-Steuerung.">
   <style>
-    /* Farben, inspiriert vom NES-Stil */
-    :root{--bg:#78c0ff;--ground:#6b4f2f;--block:#c77f3a;--player:#ffdd57;--enemy:#d9534f;--coin:#ffd700}
-    html,body{height:100%;margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);}
-    #gameWrap{display:flex;flex-direction:column;align-items:center;padding:12px;position:relative;}
-    
-    /* Responsive Canvas */
-    canvas{
-      background:linear-gradient(#78c0ff 0%, #a0e1ff 60%);
-      border:6px solid #333;
-      border-radius:8px;
-      image-rendering:pixelated; 
+    /* Allgemeine Stile */
+    :root {
+      --player-color: #d9534f; /* Mario's Rot */
+      --block-color: #c77f3a;
+      --hazard-color: #ff0000; /* Gefahren-Rot */
+      --star-color: #ffd700;
+      --text-color: #ffffff;
+      --hud-bg: rgba(0, 0, 0, 0.7);
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Press Start 2P', monospace;
+      background: #222;
+      overflow: hidden;
+    }
+    #gameWrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0;
+      position: relative;
+      height: 100vh;
+    }
+    /* Canvas und Pixel-Rendering */
+    canvas {
+      border: 3px solid #333;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      image-rendering: pixelated; 
       width: 100%; 
       max-width: 800px; 
-      height: auto;
-      touch-action: none; /* VERBESSERT: Verhindert Scrollen/Zoomen im Canvas auf Touch-Geräten */
+      height: 100%;
+      max-height: 450px;
+      touch-action: none; 
+      background-color: #78c0ff;
+      flex-shrink: 0;
     }
     
-    @media (max-width: 820px) {
-        canvas {
-            width: 95%;
-            height: calc(95vw * 450 / 800);
-        }
-        #hud {
-            width: 95%;
-        }
+    /* HUD-Stile */
+    #hud {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 15px;
+      box-sizing: border-box;
+      background: var(--hud-bg);
+      color: var(--text-color);
+      font-size: 10px;
+      border-bottom: 3px solid #333;
+    }
+    #info-left, #info-right {
+      display: flex;
+      gap: 15px;
+    }
+    .life-info {
+        display: flex;
+        align-items: center;
+    }
+    .life-bar-wrap {
+      width: 80px; /* Etwas kleiner für besseren Platz */
+      height: 10px;
+      background: #444;
+      border: 1px solid white;
+      margin-left: 5px;
+      box-sizing: border-box;
+    }
+    .life-bar {
+      height: 100%;
+      transition: width 0.3s;
+    }
+    #mario-life-bar { background: #5cb85c; }
+    #boss-life-bar { background: #d9534f; }
+    #boss-life-wrap { display: none; } /* Standardmäßig versteckt */
+
+    /* Game-Over/Pause Overlay */
+    #overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        font-size: 18px;
+        z-index: 200;
+        display: none;
+        max-width: 800px;
+        max-height: 450px;
+    }
+    #overlay h2 { margin-bottom: 15px; font-size: 24px; }
+    #overlay button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        background: var(--player-color);
+        color: white;
+        border: 2px solid white;
+        margin-top: 10px;
+        font-family: inherit;
     }
 
-    #hud{width:800px;max-width:95%;display:flex;justify-content:space-between;margin-top:8px;color:#222}
-    .btn{padding:6px 10px;border-radius:6px;border:1px solid rgba(0,0,0,0.2);cursor:pointer;background:white}
-    #info{font-size:14px}
-    .links{max-width:800px;margin-top:12px;color:#222;font-size:13px;display:flex;gap:8px;flex-wrap:wrap}
-    .links a{color:#0645ad;text-decoration:none;padding:6px 8px;border-radius:6px;border:1px solid rgba(0,0,0,0.06);background:rgba(255,255,255,0.9)}
-    .screenshot{max-width:800px;margin-top:10px;color:#222;font-size:13px;}
-    .screenshot img{max-width:100%;border-radius:6px;border:1px solid rgba(0,0,0,0.08)}
-    #footerNote{max-width:800px;margin-top:8px;color:#222;font-size:12px;opacity:0.9}
-
-    /* Styles für die virtuellen Touch-Buttons (nur auf Handy sichtbar) */
+    /* Virtuelle Touch-Buttons (Handy) */
     #touch-controls {
       position: fixed;
       bottom: 0;
       left: 0;
       width: 100%;
       display: none; 
-      padding: 15px;
+      padding: 10px;
       box-sizing: border-box;
       z-index: 100;
       justify-content: space-between;
       pointer-events: none;
     }
-
     @media (max-width: 600px) {
       #touch-controls {
         display: flex;
       }
     }
-
     .touch-btn {
-      width: 70px;
-      height: 70px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       background: rgba(0, 0, 0, 0.6);
       color: white;
-      font-size: 24px;
+      font-size: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       user-select: none;
       pointer-events: auto;
-      touch-action: manipulation; /* Verbessert: Stellt sicher, dass das Tippen funktioniert */
-      border: 3px solid rgba(255, 255, 255, 0.8);
+      touch-action: manipulation; 
+      border: 2px solid rgba(255, 255, 255, 0.8);
       opacity: 0.8;
+      font-family: inherit;
     }
     .touch-btn:active {
       opacity: 1.0;
-      background: rgba(0, 0, 0, 0.8);
-    }
-
-    #jump-btn {
-      margin-right: 15px;
+      background: rgba(0, 0, 0, 0.9);
     }
     #move-btns {
       display: flex;
-      gap: 15px;
-      margin-left: 15px;
+      gap: 10px;
+      margin-left: 10px;
     }
 
+    /* Lade-Schriftart */
+    @font-face {
+      font-family: 'Press Start 2P';
+      font-style: normal;
+      font-weight: 400;
+      src: local('Press Start 2P'), url('https://fonts.gstatic.com/s/pressstart2p/v14/R71S-zK8D-zLz-7hH-oE7-tW-1A.woff2') format('woff2');
+    }
   </style>
 </head>
 <body>
   <div id="gameWrap">
+    <div id="overlay">
+        <h2 id="overlay-title">SPIEL PAUSIERT</h2>
+        <p id="overlay-text">Drücke 'P' oder tippe, um fortzufahren.</p>
+        <button id="overlay-button">Weiter/Neu starten</button>
+    </div>
+
     <canvas id="game" width="800" height="450"></canvas>
+    
     <div id="hud">
-      <div id="info">Punkte: <span id="score">0</span> • Leben: <span id="lives">3</span></div>
-      <div>
-        <button id="restart" class="btn">Neu starten</button>
-        <button id="fullscreen" class="btn">Vollbild</button>
+      <div id="info-left">
+        <span>LVL: <span id="level">1</span></span>
+        <span>ZEIT: <span id="time">180</span>s</span>
       </div>
-    </div>
-
-    <div class="links">
-      <a href="https://github.com/Latiniron/Mario-Game" target="_blank" rel="noopener">Repo</a>
-      <a href="https://github.com/Latiniron/Mario-Game/blob/main/README.md" target="_blank" rel="noopener">README.md</a>
-      <a href="https://latiniron.github.io/Mario-Game/MarioGame.jpg" target="_blank" rel="noopener">Screenshot</a>
-    </div>
-
-    <div class="screenshot">
-      <img src="MarioGame.jpg" alt="Mario Game Screenshot" onerror="this.style.display='none'"/>
-    </div>
-
-    <div style="max-width:800px;margin-top:10px;color:#222;font-size:13px;">
-      Steuerung: ← → oder A/D zum Laufen, Leertaste oder W zum Springen. (Auf Mobilgerät: Virtuelle Tasten).
-    </div>
-
-    <div id="footerNote">
-      Hinweis: Bild und index.html müssen im Repo-Root liegen. Groß-/Kleinschreibung beachten!
+      <div id="info-right">
+        <span>PUNKTE: <span id="score">0</span></span>
+        <div class="life-info">
+            <span id="mario-life-text">100%</span>
+            <div class="life-bar-wrap">
+                <div id="mario-life-bar" class="life-bar"></div>
+            </div>
+        </div>
+        <div id="boss-life-wrap" class="life-info">
+            <span>BOSS: </span>
+            <span id="boss-life-text">100%</span>
+            <div class="life-bar-wrap">
+                <div id="boss-life-bar" class="life-bar"></div>
+            </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <div id="touch-controls">
     <div id="move-btns">
-      <div id="left-btn" class="touch-btn">◀</div>
-      <div id="right-btn" class="touch-btn">▶</div>
+      <div id="left-btn" class="touch-btn">F</div> 
+      <div id="right-btn" class="touch-btn">G</div> 
     </div>
-    <div id="jump-btn" class="touch-btn">↑</div>
+    <div id="right-btns">
+        <div id="shoot-btn" class="touch-btn" style="display:none;">U</div> <div id="jump-btn" class="touch-btn">SPRUNG</div> 
+    </div>
   </div>
 
   <script>
     // ***************************************************************
-    // SCHRITT 1: SPIELVARIABLEN UND SETUP
+    // Globale Konstanten & Setup
     // ***************************************************************
 
     const canvas = document.getElementById('game');
@@ -146,252 +226,629 @@
     const CANVAS_WIDTH = 800;
     const CANVAS_HEIGHT = 450;
     
-    // Setzt das keys-Objekt für PC- und Mobile-Steuerung
-    window.keys = { 
-        left: false, 
-        right: false, 
-        up: false 
-    }; 
-    
-    // Globale Spielvariablen
-    let score = 0;
-    let lives = 3;
+    // Spiel-Zustand
     let gameRunning = false;
-    const GRAVITY = 0.8; 
-    const JUMP_POWER = -15; 
+    let gamePaused = false;
+    let currentLevel = 1;
+    let score = 0;
+    let playerLife = 100;
+    let timeLeft = 180; // 3 Minuten
+    let lastTime = 0;
+    let animationFrameId;
+
+    // Physik-Konstanten
+    const GRAVITY = 0.9; 
+    const JUMP_POWER = -16; 
+    const HORIZONTAL_SPEED = 6;
+    const MOON_GRAVITY = 0.3; // Level 10
+    const MOON_JUMP_POWER = -10; 
 
     // Spieler-Objekt (Mario)
     let player = {
         x: 50,
         y: CANVAS_HEIGHT - 60, 
-        width: 25,
-        height: 35,
+        width: 20,
+        height: 30,
         xSpeed: 0,
         ySpeed: 0, 
-        maxSpeed: 5,
+        maxSpeed: HORIZONTAL_SPEED,
         isGrounded: false,
+        hitCooldown: 0, // Zähler für Unverwundbarkeit nach Treffer
+    };
+
+    // Godzilla Boss-Objekt (Level 10)
+    let boss = null;
+    let plasmaShots = [];
+    let fireballs = [];
+    let shootCooldown = 0;
+
+    // Steuerung
+    window.keys = { 
+        left: false, 
+        right: false, 
+        up: false,
+        showScore: false, // T
+        pause: false, // P
+        shoot: false, // U
+    }; 
+    let keyPressHandled = { T: false, P: false, Shoot: false };
+
+    // HUD-Elemente
+    const hudElements = {
+        score: document.getElementById('score'),
+        level: document.getElementById('level'),
+        time: document.getElementById('time'),
+        marioLifeText: document.getElementById('mario-life-text'),
+        marioLifeBar: document.getElementById('mario-life-bar'),
+        bossLifeWrap: document.getElementById('boss-life-wrap'),
+        bossLifeText: document.getElementById('boss-life-text'),
+        bossLifeBar: document.getElementById('boss-life-bar'),
+        overlay: document.getElementById('overlay'),
+        overlayTitle: document.getElementById('overlay-title'),
+        overlayText: document.getElementById('overlay-text'),
+        overlayButton: document.getElementById('overlay-button'),
+        shootBtn: document.getElementById('shoot-btn'),
     };
     
-    // Die Welt: Ein einfacher Boden
-    const groundHeight = 20;
-    const ground = {
-        x: 0,
-        y: CANVAS_HEIGHT - groundHeight,
-        width: CANVAS_WIDTH,
-        height: groundHeight
+    // ***************************************************************
+    // LEVEL-DATEN & HINTERGRÜNDE
+    // ***************************************************************
+
+    const LEVEL_THEMES = [
+        { name: "Grüne Berge", ground: '#6b4f2f', background: 'linear-gradient(#78c0ff 0%, #a0e1ff 60%, #4CAF50 95%)', lightBlocks: true },
+        { name: "Schneechaos", ground: '#E0E0E0', background: 'linear-gradient(#ADD8E6 0%, #FFFFFF 60%)', lightBlocks: true },
+        { name: "Naturbrand", ground: '#795548', background: 'linear-gradient(#FF7043 0%, #E64A19 60%)', lightBlocks: false },
+        { name: "Zerstörte Stadt", ground: '#546E7A', background: 'linear-gradient(#B0BEC5 0%, #CFD8DC 60%)', lightBlocks: false },
+        { name: "Strand Sonnenuntergang", ground: '#FFEB3B', background: 'linear-gradient(#FF5722 0%, #FF9800 60%)', lightBlocks: true },
+        { name: "Japanische Gärten", ground: '#8BC34A', background: 'linear-gradient(#81D4FA 0%, #E0F7FA 60%)', lightBlocks: true },
+    ];
+
+    const LEVELS = [];
+    // Generiere 9 zufällige Level
+    for (let i = 1; i <= 9; i++) {
+        const theme = LEVEL_THEMES[Math.floor(Math.random() * LEVEL_THEMES.length)];
+        LEVELS[i] = {
+            name: theme.name,
+            ground: theme.ground,
+            background: theme.background,
+            blocks: 5 + i * 2, // Steigende Blockanzahl
+            stars: 2 + Math.floor(i / 3), // Steigende Stern-Anzahl
+            difficulty: 1 + i * 0.2, // Steigende Schwierigkeit
+            isMoon: false,
+            lightBlocks: theme.lightBlocks,
+        };
+    }
+
+    // Level 10: Mondlandung mit Boss
+    LEVELS[10] = { 
+        name: "Mondlandung (Boss)", 
+        ground: '#B0BEC5', 
+        background: 'linear-gradient(#000000 0%, #2C3E50 60%)', 
+        blocks: 15, // Weniger Blöcke, da Bosskampf
+        stars: 3, 
+        difficulty: 5.0, 
+        isMoon: true,
+        lightBlocks: true,
     };
 
-    // HUD aktualisieren
-    function updateHUD() {
-        document.getElementById('score').textContent = score;
-        document.getElementById('lives').textContent = lives;
-    }
+    // Spiel-Objekte (Hindernisse, Sterne)
+    let obstacles = [];
+    let stars = [];
 
     // ***************************************************************
-    // SCHRITT 2: SPIEL-LOGIK (UPDATE)
+    // HILFSFUNKTIONEN & LEVEL-GENERATION
     // ***************************************************************
 
-    function handleInput() {
-        // Horizontale Bewegung
-        if (window.keys.left) {
-            player.xSpeed = -player.maxSpeed;
-        } else if (window.keys.right) {
-            player.xSpeed = player.maxSpeed;
-        } else {
-            // Reibung / Verlangsamen
-            player.xSpeed *= 0.8; 
-            if (Math.abs(player.xSpeed) < 0.5) player.xSpeed = 0;
-        }
-
-        // Sprung
-        // WICHTIG: Setzt window.keys.up im nächsten Frame wieder auf false, 
-        // damit der Spieler nur einmal springt.
-        if (window.keys.up && player.isGrounded) {
-            player.ySpeed = JUMP_POWER; 
-            player.isGrounded = false;
-        }
-        // Schlüssel sofort zurücksetzen, damit der Sprung-Tipp-Impuls funktioniert
-        if (window.keys.up && !player.isGrounded) {
-             window.keys.up = false; 
-        }
-    }
-
-    function applyGravity() {
-        if (!player.isGrounded) {
-            player.ySpeed += GRAVITY;
-        }
-        player.y += player.ySpeed;
-        player.x += player.xSpeed;
-    }
-
-    function checkCollision() {
-        // Kollision mit dem Boden
-        const playerBottom = player.y + player.height;
-        const groundTop = ground.y;
-
-        if (playerBottom >= groundTop) {
-            player.y = groundTop - player.height; 
-            player.ySpeed = 0; 
-            player.isGrounded = true;
-        }
-    }
-
-    function update() {
-        if (!gameRunning) return;
-
-        handleInput();
-        applyGravity();
-        checkCollision();
-        
-        // Spieler an den horizontalen Rändern halten
-        if (player.x < 0) player.x = 0;
-        if (player.x + player.width > CANVAS_WIDTH) player.x = CANVAS_WIDTH - player.width;
-    }
-
-    // ***************************************************************
-    // SCHRITT 3: ZEICHNEN (DRAW)
-    // ***************************************************************
-
-    function drawGround() {
-        ctx.fillStyle = 'var(--ground)'; 
-        ctx.fillRect(ground.x, ground.y, ground.width, ground.height);
-    }
-
-    function drawPlayer() {
-        // Zeichne Mario (ein gelber Block)
-        ctx.fillStyle = 'var(--player)'; 
-        ctx.fillRect(player.x, player.y, player.width, player.height);
-        
-        // Kleiner Hut-Simulations-Punkt (Rot)
-        ctx.fillStyle = 'red';
-        ctx.fillRect(player.x + player.width / 4, player.y - 3, player.width / 2, 5);
-    }
-
-    function draw() {
-        // 1. Canvas löschen
-        ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        
-        // 2. Elemente zeichnen
-        drawGround();
-        drawPlayer();
-    }
-
-    // Haupt-Spielschleife
-    function gameLoop() {
-        if (gameRunning) {
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
-    }
-
-    // ***************************************************************
-    // SCHRITT 4: GAME-CONTROLS UND FUNKTIONEN
-    // ***************************************************************
-
-    function startGame() {
-        if (gameRunning) return;
-        gameRunning = true;
-        updateHUD();
-        gameLoop();
+    /**
+     * Erstellt ein Hindernis (Block oder Gefahrenzone).
+     */
+    function createObstacle(x, y, w, h, isHazard = false) {
+        return { 
+            x, y, width: w, height: h, 
+            type: 'block', 
+            isHazard: isHazard 
+        };
     }
 
     /**
-     * Setzt das Spiel zurück. FUNKTION FÜR DEN NEUSTART-BUTTON!
+     * Generiert die Welt für das aktuelle Level.
      */
-    window.restartGame = function() {
-        score = 0;
-        lives = 3;
+    function generateLevel() {
+        const levelData = LEVELS[currentLevel];
+        obstacles = [];
+        stars = [];
+        boss = null;
+        plasmaShots = [];
+        fireballs = [];
         
-        // Spieler auf Startposition zurücksetzen
+        // HUD für Boss vorbereiten
+        hudElements.bossLifeWrap.style.display = levelData.isMoon ? 'flex' : 'none';
+        hudElements.shootBtn.style.display = levelData.isMoon ? 'flex' : 'none';
+
+        // --- 1. Grundlinie ---
+        const groundHeight = 20;
+        const ground = {
+            x: 0, y: CANVAS_HEIGHT - groundHeight,
+            width: CANVAS_WIDTH, height: groundHeight,
+            type: 'ground', color: levelData.ground
+        };
+        obstacles.push(ground);
+        
+        // --- 2. Hindernisse generieren ---
+        let lastX = 100;
+        const totalBlocks = levelData.blocks;
+        const minGap = 50, maxGap = 150; 
+        
+        for (let i = 0; i < totalBlocks; i++) {
+            const blockW = Math.random() * 40 + 20;
+            const blockH = Math.random() * 60 + 20;
+            const blockX = lastX + Math.random() * (maxGap - minGap) + minGap;
+            const blockY = CANVAS_HEIGHT - groundHeight - blockH;
+
+            if (blockX + blockW > CANVAS_WIDTH - 20) break;
+
+            // Zufällige Gefahren-Blöcke (häufiger in höheren Leveln/bestimmten Themen)
+            const isHazard = currentLevel > 3 && Math.random() < 0.25; 
+            obstacles.push(createObstacle(blockX, blockY, blockW, blockH, isHazard));
+            lastX = blockX + blockW;
+        }
+
+        // --- 3. Sterne generieren (Zufällig & sicher platziert) ---
+        for (let i = 0; i < levelData.stars; i++) {
+            const starX = Math.random() * (CANVAS_WIDTH - 200) + 100;
+            const starY = Math.random() * (CANVAS_HEIGHT - groundHeight - 100) + 50;
+            stars.push({ x: starX, y: starY, width: 15, height: 15, type: 'star', collected: false });
+        }
+
+        // --- 4. Boss initialisieren (Level 10) ---
+        if (levelData.isMoon) {
+            boss = {
+                x: CANVAS_WIDTH - 150, // Startet rechts
+                y: CANVAS_HEIGHT - 150, // Steht auf dem Boden
+                width: 80,
+                height: 130, // Große Godzilla-Figur
+                life: 100,
+                maxLife: 100,
+                fireCooldown: 120, // 2 Sekunden
+                type: 'boss',
+                speed: 1.5, // Langsame Bewegung
+            };
+        }
+
+        // --- 5. Spieler auf Startposition ---
         player.x = 50;
         player.y = CANVAS_HEIGHT - 60;
         player.xSpeed = 0;
         player.ySpeed = 0;
         player.isGrounded = false;
+        player.maxSpeed = HORIZONTAL_SPEED;
+        playerLife = 100; // Leben werden IMMER aufgefüllt beim Level-Start
+
+        canvas.style.background = levelData.background;
+    }
+
+    /**
+     * Aktualisiert das HUD.
+     */
+    function updateHUD() {
+        hudElements.score.textContent = score;
+        hudElements.level.textContent = currentLevel;
+        hudElements.time.textContent = Math.max(0, Math.floor(timeLeft));
+
+        // Mario Leben
+        const mLife = Math.max(0, playerLife);
+        hudElements.marioLifeText.textContent = `${mLife.toFixed(1)}%`;
+        hudElements.marioLifeBar.style.width = `${mLife}%`;
+
+        // Boss Leben (Level 10)
+        if (boss) {
+            const bLife = Math.max(0, boss.life);
+            hudElements.bossLifeText.textContent = `${bLife.toFixed(1)}%`;
+            hudElements.bossLifeBar.style.width = `${bLife}%`;
+        }
+    }
+
+    /**
+     * Bewegt zum nächsten Level.
+     */
+    function nextLevel() {
+        if (currentLevel < LEVELS.length - 1) {
+            currentLevel++;
+            startGameLoop();
+            showOverlay(`LEVEL ${currentLevel} START`, `Ziel: ${LEVELS[currentLevel].name}!`, 'Start', () => {
+                 gamePaused = false;
+                 hideOverlay();
+            });
+        } else if (currentLevel === 10 && boss.life <= 0) {
+            gameOver(true); // Spiel gewonnen nach Boss-Sieg
+        }
+    }
+
+    // ***************************************************************
+    // SPIEL-LOGIK (UPDATE)
+    // ***************************************************************
+    
+    /**
+     * Mario schießt ein Plasma-Projektil (U).
+     */
+    function shootPlasma() {
+        if (shootCooldown > 0 || !LEVELS[currentLevel].isMoon) return;
         
-        gameRunning = false; // Stoppt den alten Loop
+        plasmaShots.push({
+            x: player.x + player.width / 2,
+            y: player.y + player.height / 2,
+            width: 10,
+            height: 5,
+            xSpeed: player.maxSpeed * 2,
+            color: '#00FFFF', // Cyan Plasma
+        });
         
-        // Tasten-Status zurücksetzen
-        window.keys.left = false;
-        window.keys.right = false;
-        window.keys.up = false;
+        shootCooldown = 30; // Schuss-Verzögerung (0.5s)
+    }
+
+    function handleBossLogic() {
+        if (!boss) return;
+
+        // 1. Bewegung: Langsam auf Mario zubewegen
+        const dx = player.x - boss.x;
+        if (Math.abs(dx) > 100) { // Nur bewegen, wenn Mario weit genug entfernt ist
+             boss.x += Math.sign(dx) * boss.speed * 0.5;
+        }
+
+        // 2. Feuerball-Angriff
+        boss.fireCooldown--;
+        if (boss.fireCooldown <= 0) {
+            fireballs.push({
+                x: boss.x - 10, // Kommt aus dem Mund
+                y: boss.y + boss.height * 0.4,
+                width: 15,
+                height: 15,
+                xSpeed: -5,
+                color: 'orange',
+            });
+            boss.fireCooldown = 60 + Math.random() * 60; // 1-2 Sekunden
+        }
+    }
+
+    function updateProjectiles() {
+        // Plasma-Schüsse (Mario -> Boss)
+        for (let i = plasmaShots.length - 1; i >= 0; i--) {
+            const shot = plasmaShots[i];
+            shot.x += shot.xSpeed;
+
+            if (boss && isColliding(shot, boss)) {
+                boss.life -= 5; // 5% Schaden pro Schuss
+                score += 50;
+                plasmaShots.splice(i, 1);
+                
+                if (boss.life <= 0) {
+                    gameOver(true); // Boss besiegt
+                    return;
+                }
+            } else if (shot.x > CANVAS_WIDTH) {
+                plasmaShots.splice(i, 1);
+            }
+        }
+
+        // Feuerbälle (Boss -> Mario)
+        for (let i = fireballs.length - 1; i >= 0; i--) {
+            const ball = fireballs[i];
+            ball.x += ball.xSpeed;
+
+            if (isColliding(ball, player)) {
+                if (player.hitCooldown <= 0) {
+                    playerLife -= 1; // 1% Schaden
+                    player.hitCooldown = 60;
+                }
+                fireballs.splice(i, 1);
+            } else if (ball.x < 0) {
+                fireballs.splice(i, 1);
+            }
+        }
+    }
+
+
+    function checkCollision() {
+        player.isGrounded = false;
+        const currentLevelData = LEVELS[currentLevel];
+        const playerOldBottom = player.y - player.ySpeed + player.height;
+        
+        // Kollision mit Hindernissen und Boden
+        for (const obs of obstacles) {
+            if (isColliding(player, obs)) {
+                if (obs.type === 'ground') {
+                    player.y = obs.y - player.height; 
+                    player.ySpeed = 0; 
+                    player.isGrounded = true;
+                } else if (obs.type === 'block') {
+                    // Kollision von oben (Landung auf Block)
+                    if (playerOldBottom <= obs.y) {
+                        player.y = obs.y - player.height;
+                        player.ySpeed = 0;
+                        player.isGrounded = true;
+                    } 
+                    // Treffer von der Seite/unten
+                    else {
+                        // LEBENSABZUG NUR BEI GEFAHR-HINDERNISSEN
+                        if (obs.isHazard && player.hitCooldown <= 0) {
+                            playerLife -= 0.05 * currentLevelData.difficulty; // 0.05% Abzug
+                            player.hitCooldown = 30; // Kurzer Cooldown (0.5s)
+                        }
+                        
+                        // Zurücksetzen aus der Kollision
+                        if (player.xSpeed > 0) player.x = obs.x - player.width;
+                        else if (player.xSpeed < 0) player.x = obs.x + obs.width;
+                    }
+                }
+            }
+        }
+        
+        // Kollision mit Sternen (Zeit/Leben Bonus)
+        for (let i = stars.length - 1; i >= 0; i--) {
+            const star = stars[i];
+            if (!star.collected && isColliding(player, star)) {
+                star.collected = true;
+                score += 10;
+                timeLeft += 10; // 10s Bonus
+                playerLife = Math.min(100, playerLife + 1); // 1% Leben Bonus
+                stars.splice(i, 1);
+            }
+        }
+
+        // Kollision mit Boss (Level 10)
+        if (boss && isColliding(player, boss)) {
+             if (player.hitCooldown <= 0) {
+                playerLife -= 1; // 1% Schaden bei Kontakt
+                player.hitCooldown = 60;
+            }
+        }
+
+        // Hit-Cooldown reduzieren
+        if (player.hitCooldown > 0) {
+            player.hitCooldown--;
+        }
+
+        // Ende des Levels erreicht (nur Level 1-9)
+        if (currentLevel < 10 && player.x + player.width > CANVAS_WIDTH - 10) {
+            nextLevel();
+        }
+    }
+    
+    function update(deltaTime) {
+        if (!gameRunning || gamePaused) return;
+
+        timeLeft -= deltaTime / 1000;
+        if (playerLife <= 0 || timeLeft <= 0) {
+            gameOver(false);
+            return;
+        }
+
+        // Input und Physik
+        handleInput();
+        
+        const gravity = LEVELS[currentLevel].isMoon ? MOON_GRAVITY : GRAVITY;
+        const jumpPower = LEVELS[currentLevel].isMoon ? MOON_JUMP_POWER : JUMP_POWER;
+        
+        if (!player.isGrounded) player.ySpeed += gravity;
+        player.y += player.ySpeed;
+        player.x += player.xSpeed;
+        
+        // Cooldowns
+        if (shootCooldown > 0) shootCooldown--;
+
+        // Spezifische Logik
+        handleBossLogic();
+        updateProjectiles();
+
+        // Kollisionen
+        checkCollision();
+        
+        // Randbegrenzung (Horizontal)
+        if (player.x < 0) player.x = 0;
         
         updateHUD();
-        startGame(); // Startet den neuen Loop
+    }
+
+    // ***************************************************************
+    // ZEICHNEN (DRAW)
+    // ***************************************************************
+
+    function drawPixelRect(x, y, w, h, color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+    }
+
+    function drawWorld() {
+        const levelData = LEVELS[currentLevel];
+        
+        // Grund
+        const groundObj = obstacles.find(o => o.type === 'ground');
+        if (groundObj) drawPixelRect(groundObj.x, groundObj.y, groundObj.width, groundObj.height, groundObj.color);
+
+        // Hindernisse
+        for (const obs of obstacles) {
+            if (obs.type === 'block') {
+                const color = obs.isHazard ? 'var(--hazard-color)' : (levelData.lightBlocks ? '#c77f3a' : '#8B4513');
+                drawPixelRect(obs.x, obs.y, obs.width, obs.height, color);
+            }
+        }
+        
+        // Sterne
+        for (const star of stars) {
+            if (!star.collected) drawPixelRect(star.x, star.y, star.width, star.height, 'var(--star-color)');
+        }
+    }
+
+    function drawPlayer() {
+        if (player.hitCooldown > 0 && Math.floor(player.hitCooldown / 5) % 2 === 0) return; 
+
+        drawPixelRect(player.x, player.y, player.width, player.height, 'var(--player-color)');
+        drawPixelRect(player.x, player.y + player.height / 2, player.width, player.height / 2, '#4169E1');
+    }
+
+    function drawBoss() {
+        if (!boss) return;
+
+        // Godzilla (Grüner Block mit Zähnen/Spitzen)
+        drawPixelRect(boss.x, boss.y, boss.width, boss.height, '#4CAF50'); // Grün
+        // Kopf
+        drawPixelRect(boss.x - 10, boss.y + 10, 20, 20, '#4CAF50');
+        // Augen/Mund
+        drawPixelRect(boss.x - 10, boss.y + 15, 5, 5, 'white');
+    }
+
+    function drawProjectiles() {
+        // Plasma-Schüsse
+        for (const shot of plasmaShots) {
+            drawPixelRect(shot.x, shot.y, shot.width, shot.height, shot.color);
+        }
+        // Feuerbälle
+        for (const ball of fireballs) {
+            drawPixelRect(ball.x, ball.y, ball.width, ball.height, ball.color);
+        }
+    }
+
+    function draw() {
+        drawWorld();
+        drawBoss();
+        drawProjectiles();
+        drawPlayer();
+        
+        if (window.keys.showScore) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(CANVAS_WIDTH / 2 - 100, CANVAS_HEIGHT / 2 - 40, 200, 80);
+            ctx.fillStyle = 'white';
+            ctx.font = '16px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillText(`PUNKTE: ${score}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 10);
+            ctx.fillText(`LVL: ${currentLevel}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 20);
+        }
+    }
+
+    // ***************************************************************
+    // GAME-CONTROLS & INITIALISIERUNG
+    // ***************************************************************
+
+    function isColliding(r1, r2) {
+        return r1.x < r2.x + r2.width && r1.x + r1.width > r2.x &&
+               r1.y < r2.y + r2.height && r1.y + r1.height > r2.y;
+    }
+
+    function togglePause() {
+        if (!gameRunning) return;
+        gamePaused = !gamePaused;
+        
+        if (gamePaused) {
+            showOverlay('SPIEL PAUSIERT', 'Drücke P oder die Schaltfläche, um fortzufahren.', 'Weiter', togglePause);
+        } else {
+            hideOverlay();
+            lastTime = performance.now();
+        }
+    }
+    
+    function gameOver(win) {
+        cancelAnimationFrame(animationFrameId);
+        gameRunning = false;
+        gamePaused = true;
+
+        if (win) {
+             showOverlay('LEVEL 10 GESCHAFFT!', 
+                        `DU HAST GODZILLA BESIEGT!<br>Gesamtpunkte: ${score}`, 
+                        'Neues Spiel starten', 
+                        window.restartGame);
+        } else {
+            showOverlay('SPIEL VORBEI', 
+                        `Zeit abgelaufen oder Leben verloren.<br>Dein Score: ${score}`, 
+                        'Neu starten', 
+                        window.restartGame);
+        }
+    }
+
+    function startGameLoop() {
+        if (gameRunning) cancelAnimationFrame(animationFrameId);
+        gameRunning = true;
+        gamePaused = false;
+        
+        generateLevel(); 
+
+        lastTime = performance.now();
+        animationFrameId = requestAnimationFrame(gameLoop);
+        updateHUD();
+    }
+    
+    window.restartGame = function() {
+        currentLevel = 1;
+        score = 0;
+        playerLife = 100;
+        timeLeft = 180;
+        
+        window.keys.left = window.keys.right = window.keys.up = window.keys.showScore = window.keys.pause = window.keys.shoot = false;
+        keyPressHandled.T = keyPressHandled.P = keyPressHandled.Shoot = false;
+        
+        hideOverlay();
+        startGameLoop(); 
     };
 
     // ***************************************************************
-    // SCHRITT 5: EVENT LISTENER (Tastatur und Touch)
+    // EVENT LISTENER
     // ***************************************************************
 
-    // Tastatur-Events (PC)
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') window.keys.left = true;
-        if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') window.keys.right = true;
-        if (e.key === ' ' || e.key.toLowerCase() === 'w') window.keys.up = true; 
+        const key = e.key.toUpperCase();
+        
+        if (key === 'F') window.keys.left = true;
+        if (key === 'G') window.keys.right = true;
+        if (e.code === 'SPACE') { window.keys.up = true; e.preventDefault(); }
+        
+        if (key === 'U' && !keyPressHandled.Shoot) { // U = Schießen
+            shootPlasma();
+            keyPressHandled.Shoot = true; 
+        }
+
+        if (key === 'P' && !keyPressHandled.P) { togglePause(); keyPressHandled.P = true; }
+        if (key === 'T' && !keyPressHandled.T) { window.keys.showScore = true; keyPressHandled.T = true; }
     });
 
     document.addEventListener('keyup', (e) => {
-        if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') window.keys.left = false;
-        if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') window.keys.right = false;
+        const key = e.key.toUpperCase();
+        
+        if (key === 'F') window.keys.left = false;
+        if (key === 'G') window.keys.right = false;
+        
+        if (key === 'U') keyPressHandled.Shoot = false;
+        if (key === 'P') keyPressHandled.P = false;
+        if (key === 'T') { window.keys.showScore = false; keyPressHandled.T = false; }
     });
 
-
-    // DOM-Lade-Events (Buttons und Touch)
     document.addEventListener('DOMContentLoaded', () => {
-        const restartBtn = document.getElementById('restart');
-        const fullscreenBtn = document.getElementById('fullscreen');
+        // Touch-Listener für Bewegung und Sprung... (wie im Originalcode)
         const leftBtn = document.getElementById('left-btn');
         const rightBtn = document.getElementById('right-btn');
         const jumpBtn = document.getElementById('jump-btn');
+        const shootBtn = document.getElementById('shoot-btn'); // Neuer Schuss-Button
 
-        // Neustart Button
-        restartBtn.addEventListener('click', window.restartGame);
-
-        // Touch-Funktionen
-        function handleTouchStart(controlVariable) {
-            window.keys[controlVariable] = true;
-        }
-
-        function handleTouchEnd(controlVariable) {
-            window.keys[controlVariable] = false;
-        }
-        
-        // Touch-Listener für Bewegung
-        leftBtn.addEventListener('pointerdown', () => handleTouchStart('left'));
-        leftBtn.addEventListener('pointerup', () => handleTouchEnd('left'));
-        leftBtn.addEventListener('pointerleave', () => handleTouchEnd('left'));
-
-        rightBtn.addEventListener('pointerdown', () => handleTouchStart('right'));
-        rightBtn.addEventListener('pointerup', () => handleTouchEnd('right'));
-        rightBtn.addEventListener('pointerleave', () => handleTouchEnd('right'));
-        
-        // Touch-Listener für Sprung (wichtig: up muss schnell wieder auf false gesetzt werden)
-        jumpBtn.addEventListener('pointerdown', () => {
-            handleTouchStart('up');
-            // Optimierung: Setzt den Key kurz zurück, um einen schnellen Sprung-Impuls zu gewährleisten
-            setTimeout(() => handleTouchEnd('up'), 100); 
-        });
-        // Auch pointerup/leave verlinken, falls der Nutzer länger drückt
-        jumpBtn.addEventListener('pointerup', () => handleTouchEnd('up'));
-        jumpBtn.addEventListener('pointerleave', () => handleTouchEnd('up'));
-        
-        // Verhindert das Standardverhalten des Browsers
-        const controlsDiv = document.getElementById('touch-controls');
-        controlsDiv.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
-
-
-        // Vollbild-Funktion
-        fullscreenBtn.addEventListener('click', () => {
-             if (canvas.requestFullscreen) {
-                canvas.requestFullscreen();
+        function addTouchListeners(btn, key, actionFn = null) {
+            btn.addEventListener('pointerdown', () => {
+                if(actionFn) actionFn(); 
+                else window.keys[key] = true;
+                
+                if (key === 'up') setTimeout(() => window.keys.up = false, 100); 
+            });
+            if (!actionFn) { // Nur für Bewegungstasten
+                btn.addEventListener('pointerup', () => window.keys[key] = false);
+                btn.addEventListener('pointerleave', () => window.keys[key] = false);
             }
-        });
+        }
+        
+        addTouchListeners(leftBtn, 'left');
+        addTouchListeners(rightBtn, 'right');
+        addTouchListeners(jumpBtn, 'up');
+        addTouchListeners(shootBtn, 'shoot', shootPlasma);
 
-        // Spiel starten!
-        startGame();
+        // Start
+        window.restartGame();
     });
 </script>
 </body>
 </html>
+
