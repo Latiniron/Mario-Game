@@ -1,76 +1,62 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Jet Star Collector</title>
-    <style>
-        /* CSS Variables */
-        :root {
-            --jet-color: #00BFFF;
-            --jet-cockpit-color: #ADD8E6;
-            --jet-flame-color-1: #FFA500;
-            --jet-flame-color-2: #FFD700;
-            --star-color-1: #FFFF00;        /* Yellow */
-            --star-color-2: #FFD700;
-            --star-color-3: #FFC000;
-            --bomb-color: #FF0000;          /* Red for Mace Bomb */
-            --joystick-red: #d9534f;
-            --hud-color: #00FF00;        
-            --cockpit-color: #0d1a26;    
-            --cockpit-accent: #1e3a52;   
-            --bg-color: #000033;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jet Star Collector</title>
+  <style>
+    :root {
+      --jet-color: #00BFFF;
+      --jet-cockpit: #ADD8E6;
+      --star-1: #FFFF00;
+      --star-2: #FFD700;
+      --star-3: #FFC000;
+      --hud-bg: rgba(0, 0, 0, 0.65);
+      --joystick-base: rgba(255,255,255,0.15);
+      --joystick-knob: #eeeeee;
+      --bg: #000033;
+    }
 
-        /* General Styles: Full screen setup */
-        html, body {
-            height: 100%;
-            margin: 0;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
-            background-color: var(--bg-color);
-            font-family: 'Courier New', monospace;
-            color: var(--hud-color);
-        }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      font-family: "Courier New", monospace;
+      color: #9ff0a8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-        /* Canvas */
-        #gameCanvas {
-            width: 100%;
-            flex-grow: 1;
-            background-color: var(--bg-color);
-            image-rendering: pixelated;
-        }
+    /* Spiel-Container */
+    #gameContainer {
+      width: min(900px, 92vw);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
 
-        /* ####################################################### */
-        /* COCKPIT DESIGN */
-        /* ####################################################### */
-        #dashboard {
-            width: 100%;
-            max-width: 100vw;
-            height: 150px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 10px 20px;
-            box-sizing: border-box;
-            background: var(--cockpit-color);
-            border-top: 8px solid var(--cockpit-accent);
-            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.7);
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-            flex-shrink: 0;
-        }
+    /* Spielbereich */
+    #gameCanvas {
+      width: 100%;
+      max-width: 800px;
+      height: 450px;
+      background: #000033;
+      border: 3px solid #333;
+      border-radius: 8px;
+      image-rendering: pixelated;
+      display: block;
+    }
 
-        /* HUD Displays (Neon Look) */
-        .dashboard-display {
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid var(--hud-color);
-            padding: 8px;
-            text-align: center;
-            line-height: 1.4;
-            box-shadow: 0 0 8px var(--hud-color);
-            font-size: 12px;
-            width: 1
+    /* HUD (oben) */
+    #hud {
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 12px;
+      background: var(--hud-bg);
+      border-radius: 6px;
