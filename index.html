@@ -1,349 +1,86 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Jet Buster - Sternenjagd</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Beispielseite</title>
   <style>
-    /* Allgemeine Stile */
     :root {
-      --jet-color: #00BFFF; /* Himmelblau für den Jet */
-      --star-color-1: #ffd700; /* Gold */
-      --star-color-2: #ff8c00; /* Dunkelorange */
-      --star-color-3: #ff4500; /* Rot-Orange */
-      --text-color: #ffffff;
-      --hud-bg: rgba(0, 0, 0, 0.7);
-      --joystick-red: #d9534f; /* Roter Joystick */
-      --console-bg: #333; 
+      --bg: #f7f7f7;
+      --fg: #111;
+      --accent: #4f46e5;
+      --card: #fff;
     }
-    html, body {
-      height: 100%;
+    * { box-sizing: border-box; }
+    body {
       margin: 0;
-      font-family: 'Press Start 2P', monospace;
-      background: #222;
-      overflow: hidden;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
     }
-    #gameWrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      width: 100%;
-      max-width: 800px;
-      height: 100%;
-      flex-grow: 1;
-    }
-    /* Canvas */
-    canvas {
-      border: 3px solid #333;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-      image-rendering: pixelated; 
-      width: 100%; 
-      flex-grow: 1;
-      background-color: #000033; /* Dunklerer Weltraum-Hintergrund */
-      flex-shrink: 0;
-    }
-    
-    /* HUD-Stile */
-    #hud {
-      width: 100%;
-      max-width: 800px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 15px;
-      box-sizing: border-box;
-      background: var(--hud-bg);
-      color: var(--text-color);
-      font-size: 10px;
-      border-top: 3px solid #333;
-    }
-    #info-left, #info-right {
-      display: flex;
-      gap: 15px;
+    header, footer { padding: 1rem; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+    main { padding: 1rem; max-width: 960px; margin: 0 auto; }
+    nav ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 1rem; }
+    a { color: var(--fg); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .card {
+      background: var(--card);
+      padding: 1rem;
+      border-radius: .5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,.05);
+      margin-bottom: 1rem;
     }
 
-    /* Game-Over/Start Overlay */
-    #overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.85);
-        color: white;
-        display: none;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        font-size: 18px;
-        z-index: 200;
-    }
-    #overlay h2 { margin-bottom: 15px; font-size: 24px; }
-    #overlay p { margin-bottom: 20px; font-size: 14px; }
-    #overlay button, #difficulty-select button {
-        padding: 10px 20px;
-        font-size: 14px;
-        cursor: pointer;
-        background: var(--jet-color);
-        color: white;
-        border: 2px solid white;
-        margin: 5px;
-        font-family: inherit;
-    }
-    #difficulty-select {
-        display: flex;
-        gap: 10px;
-        margin-top: 15px;
-    }
-
-    /* Konsolen-Controller Bereich */
-    #controller-area {
-        width: 100%;
-        max-width: 800px;
-        height: 150px; 
-        background: var(--console-bg);
-        display: flex;
-        justify-content: center; /* Joystick zentrieren */
-        align-items: center;
-        padding: 10px;
-        box-sizing: border-box;
-        border-top: 3px solid #111;
-        box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-    }
-
-    /* Joystick-Stile (zentriert) */
-    #joystick-area {
-        position: relative;
-        width: 120px;
-        height: 120px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-    #joystick-base {
-        width: 100px;
-        height: 100px;
-        background: #444;
-        border-radius: 50%;
-        border: 2px solid #555;
-        position: absolute;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-    }
-    #joystick-handle {
-        width: 60px;
-        height: 60px;
-        background: var(--joystick-red);
-        border-radius: 50%;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        box-shadow: 0 3px 5px rgba(0,0,0,0.5);
-        cursor: grab;
-        touch-action: none; 
-        border: 2px solid #a00;
-    }
-
-    /* Lade-Schriftart */
-    @font-face {
-      font-family: 'Press Start 2P';
-      font-style: normal;
-      font-weight: 400;
-      src: local('Press Start 2P'), url('https://fonts.gstatic.com/s/pressstart2p/v14/R71S-zK8D-zLz-7hH-oE7-tW-1A.woff2') format('woff2');
+    @media (max-width: 600px) {
+      nav ul { flex-direction: column; }
     }
   </style>
 </head>
 <body>
-  <div id="gameWrap">
-    <div id="overlay">
-        <h2 id="overlay-title">JET BUSTER</h2>
-        <p id="overlay-text">Wähle eine Schwierigkeit, um zu starten.</p>
-        <div id="difficulty-select">
-            <button onclick="startGame(1)">LEICHT</button>
-            <button onclick="startGame(2)">MITTEL</button>
-            <button onclick="startGame(3)">SCHWER</button>
-        </div>
-        <button id="overlay-button" style="display:none;" onclick="window.restartGame()">Neu starten</button>
-    </div>
+  <header>
+    <nav aria-label="Hauptnavigation">
+      <ul>
+        <li><a href="#start">Start</a></li>
+        <li><a href="#about">Über mich</a></li>
+        <li><a href="#kontakt">Kontakt</a></li>
+      </ul>
+    </nav>
+  </header>
 
-    <canvas id="game" width="800" height="450"></canvas>
-    
-    <div id="hud">
-      <div id="info-left">
-        <span>LVL: <span id="level">1</span></span>
-        <span>SCHW: <span id="difficulty">Mittel</span></span>
-      </div>
-      <div id="info-right">
-        <span>ZEIT: <span id="time">120</span>s</span>
-        <span>PUNKTE: <span id="score">0</span> / 100</span>
-      </div>
-    </div>
-  </div>
+  <main>
+    <section class="card" id="start" aria-label="Willkommen">
+      <h1>Willkommen auf meiner Beispielseite</h1>
+      <p>Dies ist ein schnelles HTML-Gerüst mit etwas CSS für ein sauberes, responsives Layout.</p>
+    </section>
 
-  <div id="controller-area">
-    <div id="joystick-area">
-        <div id="joystick-base"></div>
-        <div id="joystick-handle"></div>
-    </div>
-  </div>
+    <section class="card" id="about">
+      <h2>Über mich</h2>
+      <p>Hier könntest du eine kurze Vorstellung oder Links zu Projekten platzieren.</p>
+    </section>
 
-  <script>
-    // ***************************************************************
-    // Globale Konstanten & Setup
-    // ***************************************************************
+    <section class="card" id="kontakt" aria-label="Kontaktformular">
+      <h2>Kontakt</h2>
+      <form action="#" method="post" aria-label="Kontaktformular">
+        <label>
+          Name<br>
+          <input type="text" name="name" required style="width:100%;">
+        </label><br><br>
+        <label>
+          E-Mail<br>
+          <input type="email" name="email" required style="width:100%;">
+        </label><br><br>
+        <label>
+          Nachricht<br>
+          <textarea name="message" rows="4" style="width:100%;"></textarea>
+        </label><br><br>
+        <button type="submit">Senden</button>
+      </form>
+    </section>
+  </main>
 
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
-    const CANVAS_WIDTH = 800;
-    const CANVAS_HEIGHT = 450;
-    canvas.width = CANVAS_WIDTH;
-    canvas.height = CANVAS_HEIGHT;
-    
-    // Spiel-Zustand
-    let gameRunning = false;
-    let currentLevel = 1;
-    let score = 0;
-    let timeLeft = 120;
-    let difficultyMultiplier = 1;
-    let lastTime = 0;
-    let animationFrameId;
-
-    // Jet-Parameter
-    const JET_SPEED = 5;
-    const JET_WIDTH = 50;
-    const JET_HEIGHT = 30;
-    // NEU: Abstand Jet zum unteren Rand
-    const JET_BOTTOM_OFFSET = 30;
-
-    // Spieler-Objekt (Jet)
-    let player = {
-        x: CANVAS_WIDTH / 2 - JET_WIDTH / 2,
-        // ANPASSUNG: Jet startet am unteren Rand
-        y: CANVAS_HEIGHT - JET_HEIGHT - JET_BOTTOM_OFFSET, 
-        width: JET_WIDTH,
-        height: JET_HEIGHT,
-        xSpeed: 0,
-        ySpeed: 0, 
-    };
-
-    // Stern-Kugel Parameter
-    const STAR_SIZE = 12; // Radius der Stern-Kugel
-    let ballSpawnTimer = 0;
-    let ballSpawnRate = 60; 
-
-    // Spiel-Objekte
-    let balls = []; 
-    
-    // Joystick-Steuerung
-    let joystickActive = false;
-    let joystickOffsetX = 0; 
-    let joystickOffsetY = 0; 
-    const JOYSTICK_MAX_DIST = 30; 
-    const JOYSTICK_SENSITIVITY = 0.1;
-
-    // Level-Daten
-    const LEVEL_DATA = [
-        { level: 1, speedFactor: 1.0 }, 
-        { level: 2, speedFactor: 1.2 }, 
-        { level: 3, speedFactor: 1.5 }, 
-        { level: 4, speedFactor: 1.8 }, 
-        { level: 5, speedFactor: 2.2 }, 
-        { level: 6, speedFactor: 2.7 }, 
-        { level: 7, speedFactor: 3.5 },
-    ];
-
-
-    // ***************************************************************
-    // FUNKTIONEN
-    // ***************************************************************
-    
-    function startGame(diff) {
-        difficultyMultiplier = diff;
-        currentLevel = 1;
-        score = 0;
-        timeLeft = 120;
-        balls = [];
-        ballSpawnTimer = 0;
-
-        const diffNames = ['LEICHT', 'MITTEL', 'SCHWER'];
-        document.getElementById('difficulty').textContent = diffNames[diff - 1];
-        
-        player.x = CANVAS_WIDTH / 2 - JET_WIDTH / 2;
-        // Jet startet am unteren Rand
-        player.y = CANVAS_HEIGHT - JET_HEIGHT - JET_BOTTOM_OFFSET; 
-        player.xSpeed = 0;
-        player.ySpeed = 0;
-        
-        hideOverlay();
-        gameRunning = true;
-        lastTime = performance.now();
-        
-        if (animationFrameId) cancelAnimationFrame(animationFrameId);
-        animationFrameId = requestAnimationFrame(gameLoop);
-        
-        updateHUD();
-    }
-
-    function spawnBall() {
-        const ballX = Math.random() * (CANVAS_WIDTH - STAR_SIZE * 2) + STAR_SIZE;
-        const speedFactor = LEVEL_DATA[currentLevel - 1].speedFactor;
-        
-        const baseSpeed = 1.5;
-        const ySpeed = baseSpeed * speedFactor * difficultyMultiplier;
-        
-        const colors = ['var(--star-color-1)', 'var(--star-color-2)', 'var(--star-color-3)'];
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        
-        balls.push({
-            x: ballX,
-            y: -STAR_SIZE,
-            radius: STAR_SIZE,
-            ySpeed: ySpeed,
-            color: color,
-            type: 'star',
-            active: true
-        });
-    }
-
-    function updateHUD() {
-        // Zielpunktzahl ist 100
-        document.getElementById('score').textContent = `${score} / 100`; 
-        document.getElementById('level').textContent = currentLevel;
-        document.getElementById('time').textContent = Math.max(0, Math.floor(timeLeft));
-    }
-
-    function nextLevel() {
-        if (currentLevel < 7) {
-            currentLevel++;
-            // Sterne spawnen schneller in höheren Leveln
-            ballSpawnRate = Math.max(20, 60 - currentLevel * 5); 
-        }
-    }
-
-    function handleInput() {
-        // Nur die X-Achse für die Bewegung verwenden
-        let targetXSpeed = joystickOffsetX * JOYSTICK_SENSITIVITY * JET_SPEED;
-        
-        // Sanftere Beschleunigung/Abbremsung nur auf der X-Achse
-        player.xSpeed += (targetXSpeed - player.xSpeed) * 0.2; 
-        player.ySpeed = 0; // Vertikale Bewegung ist nicht erlaubt
-    }
-
-    // Prüft Kollision zwischen Jet (Rechteck) und Stern (Kreis)
-    function isCollidingRectCircle(rect, circle) {
-        const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
-        const closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
-
-        const distX = circle.x - closestX;
-        const distY = circle.y - closestY;
-
-        return (distX * distX + distY * distY) < (circle.radius * circle
+  <footer class="card" role="contentinfo">
+    <p>&copy; 2025 Deine Name</p>
+  </footer>
+</body>
+</html>
