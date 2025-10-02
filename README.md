@@ -41,9 +41,6 @@ Die primäre Steuerung erfolgt über den zentrierten, **roten Joystick** im unte
 | Steuerung | Eingabe (Tastatur-Backup) | Funktion |
 | :--- | :--- | :--- |
 | **Joystick-Drag** | N/A | Steuert die X- und Y-Achse des Jets. |
-| **Links** | `A` oder `Pfeil Links` | Alternative zur horizontalen Bewegung. |
-| **Rechts** | `D` oder `Pfeil Rechts` | Alternative zur horizontalen Bewegung. |
-| **Hoch/Runter** | `W`/`S` oder `Pfeil Hoch`/`Runter` | Alternative zur vertikalen Bewegung. |
 
 ---
 
