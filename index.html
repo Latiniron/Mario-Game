@@ -22,4 +22,362 @@
     }
     #gameWrap { display: flex; flex-direction: column; align-items: center; position: relative; width: 100%; max-width: 800px; height: 100%; flex-grow: 1; }
     canvas { border: 3px solid #333; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); image-rendering: pixelated; width: 100%; flex-grow: 1; background-color: #000033; flex-shrink: 0; }
-    #hud { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; box-sizing: border-box; background: var(--hud-bg); color: var(--text-color); font-size: 10px; border-top: 
+    #hud { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; box-sizing: border-box; background: var(--hud-bg); color: var(--text-color); font-size: 10px; border-top: 3px solid #333; }
+    #info-left, #info-right { display: flex; gap: 15px; }
+    /* Neue Controls */
+    #controls { position: absolute; top: 10px; right: 10px; z-index: 100; display: flex; gap: 10px; }
+    button { padding: 10px 20px; background: var(--jet-color); color: white; border: 2px solid white; cursor: pointer; font-family: inherit; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    /* Overlay (unverändert) */
+    #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); color: white; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: 18px; z-index: 200; }
+    #overlay h2 { margin-bottom: 15px; font-size: 24px; }
+    #overlay p { margin-bottom: 20px; font-size: 14px; }
+    #difficulty-select { display: flex; gap: 10px; margin-top: 15px; }
+    #overlay button { padding: 10px 20px; font-size: 14px; cursor: pointer; background: var(--jet-color); color: white; border: 2px solid white; margin: 5px; font-family: inherit; }
+    /* Controller (unverändert + Joystick-Optimierung) */
+    #controller-area { width: 100%; max-width: 800px; height: 150px; background: var(--console-bg); display: flex; justify-content: center; align-items: center; padding: 10px; box-sizing: border-box; border-top: 3px solid #111; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+    #joystick-area { position: relative; width: 120px; height: 120px; display: flex; justify-content: center; align-items: center; }
+    #joystick-base { width: 100px; height: 100px; background: #444; border-radius: 50%; border: 2px solid #555; position: absolute; display: flex; justify-content: center; align-items: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+    #joystick-handle { width: 60px; height: 60px; background: var(--joystick-red); border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); box-shadow: 0 3px 5px rgba(0,0,0,0.5); cursor: grab; touch-action: none; border: 2px solid #a00; }
+    @font-face { font-family: 'Press Start 2P'; font-style: normal; font-weight: 400; src: local('Press Start 2P'), url('https://fonts.gstatic.com/s/pressstart2p/v14/R71S-zK8D-zLz-7hH-oE7-tW-1A.woff2') format('woff2'); }
+  </style>
+</head>
+<body>
+  <div id="gameWrap">
+    <div id="overlay">
+        <h2 id="overlay-title">JET BUSTER</h2>
+        <p id="overlay-text">Wähle eine Schwierigkeit, um zu starten.</p>
+        <div id="difficulty-select">
+            <button onclick="startGame(1)">LEICHT</button>
+            <button onclick="startGame(2)">MITTEL</button>
+            <button onclick="startGame(3)">SCHWER</button>
+        </div>
+        <button id="overlay-button" style="display:none;" onclick="restartGame()">Neu starten</button>
+    </div>
+
+    <canvas id="game" width="800" height="450"></canvas>
+    
+    <div id="hud">
+      <div id="info-left">
+        <span>SCHW: <span id="difficulty">Mittel</span></span>
+        <span>LEBEN: <span id="lives">3</span></span>
+      </div>
+      <div id="info-right">
+        <span>ZEIT: <span id="time">120</span>s</span>
+        <span>PUNKTE: <span id="score">0</span> / 100</span>
+      </div>
+    </div>
+
+    <!-- Neue Controls -->
+    <div id="controls">
+      <button id="startBtn">🚀 Start</button>
+      <button id="stopBtn" disabled>⏹️ Beenden</button>
+    </div>
+  </div>
+
+  <div id="controller-area">
+    <div id="joystick-area">
+        <div id="joystick-base"></div>
+        <div id="joystick-handle"></div>
+    </div>
+  </div>
+
+  <script>
+    // Globale Konstanten & Setup (optimiert)
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const CANVAS_WIDTH = 800;
+    const CANVAS_HEIGHT = 450;
+    canvas.width = CANVAS_WIDTH;
+    canvas.height = CANVAS_HEIGHT;
+    
+    let gameRunning = false;
+    let score = 0;
+    let timeLeft = 120;
+    let lives = 3;
+    let difficultyMultiplier = 1;
+    let ballSpawnRate = 60; // Basierend auf Schwierigkeit
+    let lastTime = 0;
+    let animationFrameId;
+
+    // Jet-Parameter
+    const JET_SPEED = 5;
+    const JET_WIDTH = 50;
+    const JET_HEIGHT = 30;
+
+    // Spieler-Objekt
+    let player = { x: CANVAS_WIDTH / 2 - JET_WIDTH / 2, y: CANVAS_HEIGHT / 2, width: JET_WIDTH, height: JET_HEIGHT, xSpeed: 0, ySpeed: 0 };
+
+    // Stern-Parameter
+    const STAR_SIZE = 12;
+    let ballSpawnTimer = 0;
+    let balls = [];
+
+    // Joystick (360° optimiert)
+    let joystickActive = false;
+    let joystickOffsetX = 0;
+    let joystickOffsetY = 0;
+    const JOYSTICK_MAX_DIST = 30;
+    const JOYSTICK_SENSITIVITY = 0.15;
+
+    // Event Listeners (optimiert für Touch/Mouse)
+    const joystickHandle = document.getElementById('joystick-handle');
+    const joystickArea = document.getElementById('joystick-area');
+
+    function getPointerPosition(e) {
+      if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      return { x: e.clientX, y: e.clientY };
+    }
+
+    let baseCenterX, baseCenterY;
+
+    function startDrag(e) {
+      e.preventDefault();
+      joystickActive = true;
+      const baseRect = joystickArea.getBoundingClientRect();
+      baseCenterX = baseRect.left + baseRect.width / 2;
+      baseCenterY = baseRect.top + baseRect.height / 2;
+      joystickHandle.style.cursor = 'grabbing';
+    }
+
+    function drag(e) {
+      if (!joystickActive) return;
+      e.preventDefault();
+      const pos = getPointerPosition(e);
+      let deltaX = pos.x - baseCenterX;
+      let deltaY = pos.y - baseCenterY;
+      const dist = Math.sqrt(deltaX ** 2 + deltaY ** 2);
+      if (dist > JOYSTICK_MAX_DIST) {
+        deltaX = (deltaX / dist) * JOYSTICK_MAX_DIST;
+        deltaY = (deltaY / dist) * JOYSTICK_MAX_DIST;
+      }
+      joystickOffsetX = deltaX;
+      joystickOffsetY = deltaY;
+      joystickHandle.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
+    }
+
+    function endDrag() {
+      joystickActive = false;
+      joystickOffsetX = 0;
+      joystickOffsetY = 0;
+      joystickHandle.style.transform = 'translate(-50%, -50%)';
+      joystickHandle.style.cursor = 'grab';
+    }
+
+    joystickHandle.addEventListener('pointerdown', startDrag);
+    document.addEventListener('pointermove', drag);
+    document.addEventListener('pointerup', endDrag);
+    document.addEventListener('pointercancel', endDrag);
+
+    // Start/Beenden Buttons
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    startBtn.addEventListener('click', () => {
+      gameRunning = true;
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(gameLoop);
+    });
+    stopBtn.addEventListener('click', () => {
+      gameRunning = false;
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    });
+
+    // Start Game
+    function startGame(diff) {
+      difficultyMultiplier = diff;
+      const diffNames = ['LEICHT', 'MITTEL', 'SCHWER'];
+      const spawnRates = [80, 60, 40]; // Schwierigkeit beeinflusst Spawn
+      ballSpawnRate = spawnRates[diff - 1];
+      document.getElementById('difficulty').textContent = diffNames[diff - 1];
+      resetGame();
+      hideOverlay();
+      startBtn.disabled = false;
+    }
+
+    function resetGame() {
+      score = 0; timeLeft = 120; lives = 3; balls = []; ballSpawnTimer = 0;
+      player.x = CANVAS_WIDTH / 2 - JET_WIDTH / 2;
+      player.y = CANVAS_HEIGHT / 2;
+      player.xSpeed = 0; player.ySpeed = 0;
+      gameRunning = false;
+      startBtn.disabled = true;
+      stopBtn.disabled = true;
+      updateHUD();
+    }
+
+    function spawnBall() {
+      const ballX = Math.random() * (CANVAS_WIDTH - STAR_SIZE * 2) + STAR_SIZE;
+      const speed = 1.5 * difficultyMultiplier;
+      const colors = ['var(--star-color-1)', 'var(--star-color-2)', 'var(--star-color-3)'];
+      balls.push({
+        x: ballX, y: -STAR_SIZE, radius: STAR_SIZE, dx: 0, dy: speed,
+        color: colors[Math.floor(Math.random() * colors.length)], active: true
+      });
+    }
+
+    function updateHUD() {
+      document.getElementById('score').textContent = `${score} / 100`;
+      document.getElementById('time').textContent = Math.max(0, Math.floor(timeLeft));
+      document.getElementById('lives').textContent = lives;
+    }
+
+    function handleInput() {
+      const targetX = joystickOffsetX * JOYSTICK_SENSITIVITY * JET_SPEED;
+      const targetY = joystickOffsetY * JOYSTICK_SENSITIVITY * JET_SPEED;
+      player.xSpeed += (targetX - player.xSpeed) * 0.2;
+      player.ySpeed += (targetY - player.ySpeed) * 0.2;
+    }
+
+    function isCollidingRectCircle(rect, circle) {
+      const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
+      const closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
+      const distX = circle.x - closestX;
+      const distY = circle.y - closestY;
+      return (distX * distX + distY * distY) < (circle.radius * circle.radius);
+    }
+
+    function update(deltaTime) {
+      if (!gameRunning) return;
+      timeLeft -= deltaTime / 1000;
+
+      handleInput();
+      player.x += player.xSpeed;
+      player.y += player.ySpeed;
+      // Randbegrenzung
+      player.x = Math.max(0, Math.min(CANVAS_WIDTH - JET_WIDTH, player.x));
+      player.y = Math.max(0, Math.min(CANVAS_HEIGHT - JET_HEIGHT, player.y));
+
+      // Spawn
+      ballSpawnTimer += deltaTime;
+      if (ballSpawnTimer >= ballSpawnRate) {
+        spawnBall();
+        ballSpawnTimer = 0;
+      }
+
+      // Update Balls (Homing!)
+      for (let i = balls.length - 1; i >= 0; i--) {
+        const ball = balls[i];
+        // Homing Richtung Jet
+        const dx = player.x + JET_WIDTH / 2 - ball.x;
+        const dy = player.y + JET_HEIGHT / 2 - ball.y;
+        const dist = Math.sqrt(dx ** 2 + dy ** 2);
+        if (dist > 0) {
+          ball.dx += (dx / dist) * 0.5; // Homing-Faktor
+          ball.dy += (dy / dist) * 0.5;
+        }
+        ball.x += ball.dx;
+        ball.y += ball.dy;
+
+        // Kollision
+        if (isCollidingRectCircle(player, ball)) {
+          score++;
+          balls.splice(i, 1);
+          if (score >= 100) gameOver(true);
+          continue;
+        }
+
+        // Verpasst (Leben -1)
+        if (ball.y > CANVAS_HEIGHT + STAR_SIZE) {
+          balls.splice(i, 1);
+          lives--;
+          if (lives <= 0) gameOver(false);
+        }
+      }
+
+      if (timeLeft <= 0) gameOver(false);
+
+      updateHUD();
+    }
+
+    // Draw Functions (unverändert)
+    function drawRect(x, y, w, h, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+    }
+
+    function drawStar(star) {
+      const spikes = 5;
+      const outerRadius = star.radius;
+      const innerRadius = star.radius / 2;
+      let rot = Math.PI / 2 * 3;
+      let x = star.x;
+      let y = star.y;
+      let step = Math.PI / spikes;
+
+      ctx.strokeStyle = star.color;
+      ctx.fillStyle = star.color;
+      ctx.beginPath();
+      ctx.moveTo(x, y - outerRadius);
+
+      for (let i = 0; i < spikes; i++) {
+        x = star.x + Math.cos(rot) * outerRadius;
+        y = star.y + Math.sin(rot) * outerRadius;
+        ctx.lineTo(x, y);
+        rot += step;
+
+        x = star.x + Math.cos(rot) * innerRadius;
+        y = star.y + Math.sin(rot) * innerRadius;
+        ctx.lineTo(x, y);
+        rot += step;
+      }
+      ctx.lineTo(star.x, star.y - outerRadius);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawJet() {
+      ctx.fillStyle = 'var(--jet-color)';
+      const p = player;
+      drawRect(p.x, p.y + p.height * 0.1, p.width, p.height * 0.8, 'var(--jet-color)');
+      ctx.beginPath();
+      ctx.moveTo(p.x + p.width * 0.1, p.y + p.height * 0.9);
+      ctx.lineTo(p.x - 10, p.y + p.height);
+      ctx.lineTo(p.x + p.width * 0.9, p.y + p.height * 0.9);
+      ctx.fill();
+      drawRect(p.x + p.width * 0.3, p.y, p.width * 0.4, p.height * 0.4, '#ADD8E6');
+      drawRect(p.x + p.width * 0.1, p.y + p.height * 0.85, p.width * 0.2, p.height * 0.15, '#FF4500');
+      drawRect(p.x + p.width * 0.7, p.y + p.height * 0.85, p.width * 0.2, p.height * 0.15, '#FF4500');
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      for (const ball of balls) drawStar(ball);
+      drawJet();
+    }
+
+    function gameLoop(timestamp) {
+      const deltaTime = timestamp - lastTime;
+      lastTime = timestamp;
+      update(deltaTime);
+      draw();
+      animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    function gameOver(win) {
+      gameRunning = false;
+      let title, message;
+      if (win && score >= 100) {
+        title = 'FANTASTISCH! SIEG!';
+        message = `**${score} Sterne** gefangen!`;
+      } else {
+        title = 'GAME OVER';
+        message = `Score: **${score}**. Leben: ${lives}`;
+      }
+      document.getElementById('overlay-title').textContent = title;
+      document.getElementById('overlay-text').innerHTML = message;
+      document.getElementById('overlay-button').style.display = 'block';
+      showOverlay();
+    }
+
+    function hideOverlay() { document.getElementById('overlay').style.display = 'none'; }
+    function showOverlay() { document.getElementById('overlay').style.display = 'flex'; }
+    function restartGame() { document.getElementById('overlay').style.display = 'flex'; resetGame(); }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => { showOverlay(); });
+  </script>
+</body>
+</html>
