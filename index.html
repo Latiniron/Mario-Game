@@ -1,86 +1,25 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Beispielseite</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Jet Buster - Sternenjagd</title>
   <style>
+    /* Allgemeine Stile (unverändert + Optimierungen) */
     :root {
-      --bg: #f7f7f7;
-      --fg: #111;
-      --accent: #4f46e5;
-      --card: #fff;
+      --jet-color: #00BFFF;
+      --star-color-1: #ffd700;
+      --star-color-2: #ff8c00;
+      --star-color-3: #ff4500;
+      --text-color: #ffffff;
+      --hud-bg: rgba(0, 0, 0, 0.7);
+      --joystick-red: #d9534f;
+      --console-bg: #333; 
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--fg);
+    html, body {
+      height: 100%; margin: 0; font-family: 'Press Start 2P', monospace;
+      background: #222; overflow: hidden; display: flex; justify-content: center; align-items: center; flex-direction: column;
     }
-    header, footer { padding: 1rem; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
-    main { padding: 1rem; max-width: 960px; margin: 0 auto; }
-    nav ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 1rem; }
-    a { color: var(--fg); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-
-    .card {
-      background: var(--card);
-      padding: 1rem;
-      border-radius: .5rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,.05);
-      margin-bottom: 1rem;
-    }
-
-    @media (max-width: 600px) {
-      nav ul { flex-direction: column; }
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <nav aria-label="Hauptnavigation">
-      <ul>
-        <li><a href="#start">Start</a></li>
-        <li><a href="#about">Über mich</a></li>
-        <li><a href="#kontakt">Kontakt</a></li>
-      </ul>
-    </nav>
-  </header>
-
-  <main>
-    <section class="card" id="start" aria-label="Willkommen">
-      <h1>Willkommen auf meiner Beispielseite</h1>
-      <p>Dies ist ein schnelles HTML-Gerüst mit etwas CSS für ein sauberes, responsives Layout.</p>
-    </section>
-
-    <section class="card" id="about">
-      <h2>Über mich</h2>
-      <p>Hier könntest du eine kurze Vorstellung oder Links zu Projekten platzieren.</p>
-    </section>
-
-    <section class="card" id="kontakt" aria-label="Kontaktformular">
-      <h2>Kontakt</h2>
-      <form action="#" method="post" aria-label="Kontaktformular">
-        <label>
-          Name<br>
-          <input type="text" name="name" required style="width:100%;">
-        </label><br><br>
-        <label>
-          E-Mail<br>
-          <input type="email" name="email" required style="width:100%;">
-        </label><br><br>
-        <label>
-          Nachricht<br>
-          <textarea name="message" rows="4" style="width:100%;"></textarea>
-        </label><br><br>
-        <button type="submit">Senden</button>
-      </form>
-    </section>
-  </main>
-
-  <footer class="card" role="contentinfo">
-    <p>&copy; 2025 Deine Name</p>
-  </footer>
-</body>
-</html>
+    #gameWrap { display: flex; flex-direction: column; align-items: center; position: relative; width: 100%; max-width: 800px; height: 100%; flex-grow: 1; }
+    canvas { border: 3px solid #333; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); image-rendering: pixelated; width: 100%; flex-grow: 1; background-color: #000033; flex-shrink: 0; }
+    #hud { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; box-sizing: border-box; background: var(--hud-bg); color: var(--text-color); font-size: 10px; border-top: 
