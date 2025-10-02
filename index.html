@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Ein kleines, ein-Datei Super-Mario-artiges Platformer-Spiel: HTML5 Canvas, JavaScript, Level, Gegner, Münzen und Punktestand.">
+  <meta name="author" content="ChatGPT - Beispielprojekt">
+  <meta name="license" content="MIT">
+  <meta property="og:title" content="Mini SuperMario - HTML5 Canvas">
+  <meta property="og:description" content="Ein kleines Super-Mario-artiges Platformer-Spiel in einer einzigen HTML-Datei.">
+  <title>Mini SuperMario</title>
+  <style>
+    :root{--bg:#78c0ff;--ground:#6b4f2f;--block:#c77f3a;--player:#ffdd57;--enemy:#d9534f;--coin:#ffd700}
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, sans-serif;background:var(--bg);}
+    #gameWrap{display:flex;flex-direction:column;align-items:center;padding:12px}
+    canvas{background:linear-gradient(#78c0ff 0%, #a0e1ff 60%);border:6px solid #333;border-radius:8px;image-rendering:pixelated}
+    #hud{width:800px;max-width:95%;display:flex;justify-content:space-between;margin-top:8px;color:#222}
+    .btn{padding:6px 10px;border-radius:6px;border:1px solid rgba(0,0,0,0.2);cursor:pointer;background:white}
+    #info{font-size:14px}
+  </style>
+</head>
+<body>
+  <div id="gameWrap">
+    <canvas id="game" width="800" height="450"></canvas>
+    <div id="hud">
+      <div id="info">Punkte: <span id="score">0</span> • Leben: <span id="lives">3</span></div>
+      <div>
+        <button id="restart" class="btn">Neu starten</button>
+        <button id="fullscreen" class="btn">Vollbild</button>
+      </div>
+    </div>
+    <div style="max-width:800px;margin-top:10px;color:#222;font-size:13px;">
+      Steuerung: ← → oder A/D zum laufen, Leertaste oder W zum springen. Sammle Münzen, vermeide Gegner.
+    </div>
+  </div>
+
+  <script>
+  // ... (game JavaScript code as in document) ...
+  </script>
+</body>
+</html>
