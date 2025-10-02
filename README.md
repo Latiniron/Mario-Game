@@ -1,5 +1,3 @@
-Alles klar. Ich entferne die spezifische Beschreibung des Joysticks aus der README.md-Datei. Die Steuerungstabelle listet nun nur noch die Funktion auf.
-Hier ist die angepasste Version, die du direkt kopieren kannst:
 # 🚀 JET BUSTER: Sternenjagd-Challenge
 
 Willkommen bei **JET BUSTER**, einem schnellen, arcade-inspirierten Geschicklichkeitsspiel, bei dem du einen wendigen Jet steuerst, um fallende Sterne einzufangen. Halte die Sterne vom Boden fern und erreiche die Zielpunktzahl, bevor die Zeit abläuft!
