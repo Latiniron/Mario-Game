@@ -1,3 +1,7 @@
+Super! Ich habe den von dir gewünschten, detailreicheren Jet-Design-Code genommen und ihn in die drawJet()-Funktion deines HTML-Spiels integriert.
+Die neue Version deines Codes verwendet nun die komplexeren Canvas-Zeichnungspfade, um einen Retro-Futuristic Jet mit animierten Flammen darzustellen.
+Hier ist der vollständige, korrigierte und aktualisierte Code (index.html):
+🚀 Jet Buster V4: Neues Jet-Design
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -8,6 +12,9 @@
         /* CSS-Variablen */
         :root {
             --jet-color: #00BFFF; /* Himmelblau für den Jet */
+            --jet-cockpit-color: #ADD8E6; /* Helles Blau */
+            --jet-flame-color-1: #FFA500; /* Orange für Flammen */
+            --jet-flame-color-2: #FFD700; /* Gelb für Glühen */
             --star-color-1: #ffd700; /* Gelb (Gold) */
             --star-color-2: #ff8c00; /* Orange */
             --star-color-3: #ff4500; /* Rot-Orange */
@@ -264,13 +271,11 @@
 
     // Canvas Größe anpassen
     function resizeCanvas() {
-        // Die Höhe wird dynamisch basierend auf den festen Höhen der HUD-Elemente berechnet
         const dashboardHeight = 150; 
         
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight - dashboardHeight; 
        
-        // Jet-Position aktualisieren
         player.x = (canvas.width - JET_WIDTH) / 2;
         player.y = canvas.height - JET_HEIGHT - JET_BOTTOM_OFFSET;
     }
@@ -301,7 +306,6 @@
 
         messageBox.style.display = 'none';
         
-        // Initialisiere die Joystick-Position
         const joystickHandle = document.getElementById('joystick-handle');
         joystickHandle.style.transform = 'translate(-50%, -50%)';
     }
@@ -333,10 +337,9 @@
     }
 
     function spawnObject(deltaTime) {
-        // Die Spawn-Rate wird dynamisch angepasst, basierend auf der Zeit
-        const targetSpawnRate = Math.max(0.5, BASE_SPAWN_RATE + Math.floor(score / 20) * 0.2); // Zunahme pro 20 Punkte
+        const targetSpawnRate = Math.max(0.5, BASE_SPAWN_RATE + Math.floor(score / 20) * 0.2); 
         
-        objectSpawnTimer += deltaTime / 1000; // In Sekunden
+        objectSpawnTimer += deltaTime / 1000; 
         
         while (objectSpawnTimer >= 1 / targetSpawnRate) {
             
@@ -344,14 +347,14 @@
             const size = type === 'star' ? STAR_SIZE : BALL_SIZE;
             
             const objectX = Math.random() * (canvas.width - size * 2) + size;
-            const baseSpeed = 200; // Pixel pro Sekunde
-            const speed = baseSpeed + (score * 5); // Geschwindigkeit steigt mit Score
+            const baseSpeed = 200; 
+            const speed = baseSpeed + (score * 5); 
             
             fallingObjects.push({
                 x: objectX,
                 y: -size,
                 radius: size,
-                speed: speed, // In Px/s
+                speed: speed, 
                 type: type,
                 color: type === 'star' ? STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)] : 'var(--ball-color)',
             });
@@ -361,10 +364,7 @@
     }
 
     function handleInput(deltaTime) {
-        // Joystick/Tastatur bestimmt die Zielgeschwindigkeit (in Px/s)
         let targetXSpeed = joystickOffsetX * JET_SPEED_BASE / JOYSTICK_MAX_DIST;
-        
-        // Sanfter Übergang zur Zielgeschwindigkeit (frame-rate unabhängig)
         player.xSpeed += (targetXSpeed - player.xSpeed) * 0.005 * deltaTime;
     }
 
@@ -384,18 +384,14 @@
         spawnObject(deltaTime);
         handleInput(deltaTime);
         
-        // Spieler-Bewegung (frame-rate unabhängig)
-        player.x += player.xSpeed * (deltaTime / 1000); // xSpeed in Px/s
+        player.x += player.xSpeed * (deltaTime / 1000); 
 
-        // Randbegrenzung
         if (player.x < 0) player.x = 0;
         if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
         
-        // Objekt-Bewegung und Kollision
         for (let i = fallingObjects.length - 1; i >= 0; i--) {
             const obj = fallingObjects[i];
             
-            // Objekt-Bewegung (frame-rate unabhängig)
             obj.y += obj.speed * (deltaTime / 1000);
 
             if (isCollidingRectCircle(player, { x: obj.x, y: obj.y, radius: obj.radius })) {
@@ -463,29 +459,79 @@
         ctx.fill();
     }
 
+    /**
+     * NEUE drawJet Funktion mit Retro-Futuristischem Design
+     */
     function drawJet() {
-        ctx.fillStyle = 'var(--jet-color)';
         const p = player;
         
-        // Hauptkörper
-        drawRect(p.x, p.y + p.height * 0.1, p.width, p.height * 0.8, 'var(--jet-color)');
-        
-        // Flügel
-        ctx.beginPath();
+        // 1. Hauptkörper (Pfeilform)
         ctx.fillStyle = 'var(--jet-color)';
-        ctx.moveTo(p.x + p.width * 0.1, p.y + p.height * 0.9); 
-        ctx.lineTo(p.x - 5, p.y + p.height); 
-        ctx.lineTo(p.x + p.width * 0.9, p.y + p.height * 0.9); 
+        ctx.beginPath();
+        // Spitze
+        ctx.moveTo(p.x + p.width * 0.5, p.y - 5); 
+        // Rechte Seite
+        ctx.lineTo(p.x + p.width * 0.9, p.y + p.height * 0.3);
+        ctx.lineTo(p.x + p.width * 0.9, p.y + p.height * 0.7);
+        // Hinten
+        ctx.lineTo(p.x + p.width * 0.75, p.y + p.height); 
+        // Linke Seite
+        ctx.lineTo(p.x + p.width * 0.25, p.y + p.height); 
+        ctx.lineTo(p.x + p.width * 0.1, p.y + p.height * 0.7);
+        ctx.lineTo(p.x + p.width * 0.1, p.y + p.height * 0.3);
+        ctx.closePath();
         ctx.fill();
 
-        // Cockpit
-        drawRect(p.x + p.width * 0.3, p.y, p.width * 0.4, p.height * 0.4, '#ADD8E6');
+        // 2. Flügel (Weit außen)
+        const wingColor = '#5cb3ff'; // Etwas dunklerer Ton
+        
+        // Linker Flügel
+        ctx.fillStyle = wingColor;
+        ctx.beginPath();
+        ctx.moveTo(p.x + p.width * 0.15, p.y + p.height * 0.5); 
+        ctx.lineTo(p.x - 15, p.y + p.height * 0.7); 
+        ctx.lineTo(p.x - 15, p.y + p.height * 0.85); 
+        ctx.lineTo(p.x + p.width * 0.15, p.y + p.height * 0.9); 
+        ctx.fill();
 
-        // Düsen (Feuer)
-        const fireColor = gameRunning ? (score % 2 === 0 ? '#FFA500' : '#FF4500') : '#555'; // Flackern, wenn aktiv
-        drawRect(p.x + p.width * 0.1, p.y + p.height * 0.85, p.width * 0.2, p.height * 0.15, fireColor);
-        drawRect(p.x + p.width * 0.7, p.y + p.height * 0.85, p.width * 0.2, p.height * 0.15, fireColor);
+        // Rechter Flügel
+        ctx.fillStyle = wingColor;
+        ctx.beginPath();
+        ctx.moveTo(p.x + p.width * 0.85, p.y + p.height * 0.5); 
+        ctx.lineTo(p.x + p.width + 15, p.y + p.height * 0.7); 
+        ctx.lineTo(p.x + p.width + 15, p.y + p.height * 0.85); 
+        ctx.lineTo(p.x + p.width * 0.85, p.y + p.height * 0.9); 
+        ctx.fill();
+
+        // 3. Cockpit (Vorne, oben)
+        ctx.fillStyle = 'var(--jet-cockpit-color)'; 
+        ctx.beginPath();
+        ctx.arc(p.x + p.width * 0.5, p.y + p.height * 0.2, p.width * 0.15, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 4. Triebwerksflammen (Animiert)
+        const flameLength = gameRunning ? (25 + Math.sin(performance.now() * 0.005) * 10) : 5; // Längen-Animation
+        const fireColor = gameRunning ? (flameLength > 20 ? 'var(--jet-flame-color-1)' : 'var(--jet-flame-color-2)') : '#555'; 
+
+        // Linke Düse (Dreieckige Flamme)
+        ctx.fillStyle = fireColor;
+        ctx.beginPath();
+        ctx.moveTo(p.x + p.width * 0.35, p.y + p.height);
+        ctx.lineTo(p.x + p.width * 0.45, p.y + p.height);
+        ctx.lineTo(p.x + p.width * 0.4 - 5, p.y + p.height + flameLength); // Spitze
+        ctx.closePath();
+        ctx.fill();
+
+        // Rechte Düse (Dreieckige Flamme)
+        ctx.fillStyle = fireColor;
+        ctx.beginPath();
+        ctx.moveTo(p.x + p.width * 0.55, p.y + p.height);
+        ctx.lineTo(p.x + p.width * 0.65, p.y + p.height);
+        ctx.lineTo(p.x + p.width * 0.6 + 5, p.y + p.height + flameLength); // Spitze
+        ctx.closePath();
+        ctx.fill();
     }
+
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -513,7 +559,6 @@
             update(deltaTime);
             draw();
         } else {
-            // Wenn pausiert/Startscreen, zeichne nur den Hintergrund und den Jet
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawJet();
         }
@@ -537,7 +582,7 @@
         messageTitle.textContent = title;
         messageText.innerHTML = text;
         restartButton.textContent = buttonText;
-        restartButton.onclick = (title === 'PAUSE' ? startGame : initGame); // Bei Pause weiterspielen, bei GameOver/Start neu initialisieren
+        restartButton.onclick = (title === 'PAUSE' ? startGame : initGame);
         messageBox.style.display = 'block';
     }
 
@@ -637,3 +682,4 @@
 
 </body>
 </html>
+
