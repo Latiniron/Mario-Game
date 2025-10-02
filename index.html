@@ -496,7 +496,7 @@
             if (keys['ArrowLeft']) jet.x -= jetSpeed;
             if (keys['ArrowRight']) jet.x += jetSpeed;
             if (keys['ArrowUp']) jet.y -= jetSpeed;
-            if (keys['ArrowDown']) jet.y += jetSpeed;
+            if (keys['ArrowDown']) jet.x += jetSpeed;
 
             // Begrenzung
             if (jet.x < 0) jet.x = 0;
@@ -795,7 +795,7 @@
             // 5. Objekte zeichnen
             drawObjects();
 
-            // 6. Jet zeichnen (mit Triebwerk)
+            // 6. Jet zeichnen (ohne Triebwerk)
             drawJet();
 
             // 7. Nächsten Frame anfordern
@@ -813,3 +813,4 @@
     </script>
 </body>
 </html>
+
