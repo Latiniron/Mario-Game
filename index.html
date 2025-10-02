@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jet Star Collector - Spiel</title>
+  <title>Jet Star Collector</title>
   <style>
     :root {
       --jet-color: #00BFFF;
-      --star1: #FFFF00;
-      --star2: #FFD700;
-      --star3: #FFC000;
-      --hud-bg: rgba(0,0,0,.65);
-      --bg: #0b0b12;
-      --panel: #1e1e1e;
-      --joystick-base: rgba(255,255,255,.15);
+      --jet-cockpit: #ADD8E6;
+      --star-1: #FFFF00;
+      --star-2: #FFD700;
+      --star-3: #FFC000;
+      --hud-bg: rgba(0, 0, 0, 0.65);
+      --joystick-base: rgba(255,255,255,0.15);
       --joystick-knob: #eeeeee;
+      --bg: #000033;
     }
 
     html, body {
@@ -24,70 +24,70 @@
       font-family: "Courier New", monospace;
       color: #9ff0a8;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
     }
 
+    /* Spiel-Container */
     #gameContainer {
-      width: min(980px, 94vw);
+      width: min(900px, 92vw);
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 12px;
-      padding: 12px;
     }
 
     /* Spielbereich */
     #gameCanvas {
       width: 100%;
-      height: 480px;
       max-width: 800px;
+      height: 450px;
       background: #000033;
       border: 3px solid #333;
       border-radius: 8px;
-      display: block;
       image-rendering: pixelated;
+      display: block;
     }
 
-    /* HUD über dem Canvas (oben) */
+    /* HUD (oben) */
     #hud {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      right: 12px;
+      position: relative;
+      width: 100%;
+      max-width: 800px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 12px;
+      padding: 6px 12px;
       background: var(--hud-bg);
       border-radius: 6px;
-      font-size: 14px;
-      z-index: 2;
+      font-size: 13px;
+      color: #9ff0a8;
+      box-shadow: 0 2px 6px rgba(0,0,0,.5);
     }
 
-    /* Joystick unten links */
-    #joyZone {
+    /* Joystick-Bereich (unten links) */
+    #joystick {
       position: absolute;
-      left: 16px;
-      bottom: 16px;
+      left: 12px;
+      bottom: 12px;
       width: 120px;
       height: 120px;
       z-index: 2;
     }
-    #joyBase {
+    .joystick-base {
       width: 100px;
       height: 100px;
       border-radius: 50%;
       background: var(--joystick-base);
       border: 2px solid rgba(255,255,255,.6);
-      position: absolute;
-      left: 0;
-      top: 0;
       display: flex;
       align-items: center;
       justify-content: center;
+      position: absolute;
+      left: 0;
+      top: 0;
     }
-    #joyKnob {
+    .joystick-knob {
       width: 60px;
       height: 60px;
       border-radius: 50%;
@@ -101,30 +101,28 @@
       touch-action: none;
     }
 
-    /* Overlay Start/End */
+    /* Overlay Start / End */
     #overlay {
       position: absolute;
       inset: 0;
       display: none;
       align-items: center;
       justify-content: center;
-      background: rgba(0,0,0,.65);
-      z-index: 4;
-      padding: 20px;
+      background: rgba(0,0,0,.6);
+      z-index: 5;
     }
     #overlay.active { display: flex; }
     #overlayPanel {
-      background: rgba(0,0,0,.85);
-      padding: 22px;
+      background: rgba(0,0,0,.8);
       border-radius: 12px;
+      padding: 20px;
       text-align: center;
       color: #fff;
-      max-width: 420px;
-      width: 100%;
-      box-shadow: 0 8px 25px rgba(0,0,0,.6);
+      min-width: 260px;
+      box-shadow: 0 8px 20px rgba(0,0,0,.6);
     }
-    #overlayPanel h2 { margin: 0 0 6px 0; font-size: 26px; }
-    #overlayPanel p { margin: 0 0 12px 0; font-size: 14px; }
+    #overlayPanel h2 { margin: 0 0 6px 0; }
+    #overlayPanel p { margin: 0 0 12px 0; font-size: 13px; }
 
     .btn {
       padding: 10px 14px;
@@ -133,29 +131,30 @@
       cursor: pointer;
       font-family: inherit;
       font-size: 14px;
+      margin: 0 6px;
     }
     .btn.primary { background: #4f46e5; color: white; }
     .btn.secondary { background: #374151; color: white; }
 
     @media (max-width: 700px) {
-      #hud { font-size: 12px; }
       #gameCanvas { height: 420px; }
+      #hud { font-size: 12px; }
     }
   </style>
 </head>
 <body>
-  <div id="gameContainer" aria-label="Jet Spiel Container" style="position:relative;">
-    <!-- Overlay Start -->
-    <div id="overlay" class="overlay" aria-label="Spiel Start Overlay">
+  <div id="gameContainer">
+    <!-- Overlay: Schwierigkeit auswählen + Start -->
+    <div id="overlay" class="overlay" aria-label="Spiel starten Overlay">
       <div id="overlayPanel">
         <h2>Jet Star Collector</h2>
         <p>Wähle eine Schwierigkeit und starte das Spiel.</p>
-        <div id="difficulty-select" style="margin:8px 0;" aria-label="Schwierigkeit auswählen">
+        <div id="difficulty-select" style="margin: 8px 0;" aria-label="Schwierigkeit auswählen">
           <button class="btn" data-diff="1" aria-label="Leicht">LEICHT</button>
           <button class="btn" data-diff="2" aria-label="Mittel">MITTEL</button>
           <button class="btn" data-diff="3" aria-label="Schwer">SCHWER</button>
         </div>
-        <div style="margin-top:6px;">
+        <div style="margin-top: 6px;">
           <button id="startBtn" class="btn primary" aria-label="Spiel Starten">Start</button>
           <button id="pauseBtn" class="btn secondary" aria-label="Spiel Beenden">Beenden</button>
         </div>
@@ -165,85 +164,85 @@
       </div>
     </div>
 
-    <!-- HUD (über dem Canvas) -->
-    <div id="hud" aria-label="HUD Anzeige" style="position:absolute;">
+    <!-- HUD-Leiste -->
+    <div id="hud" aria-label="HUD-Leiste">
       <div>Time: <span id="time">60</span>s</div>
       <div>Score: <span id="score">0</span></div>
       <div>Diff: <span id="diffNameHud">MITTEL</span></div>
     </div>
 
-    <!-- Spiel-Fläche -->
+    <!-- Spielbereich -->
     <canvas id="gameCanvas" width="800" height="450" aria-label="Spielbereich"></canvas>
 
-    <!-- Joystick -->
-    <div id="joyZone" aria-label="Joystick Zone">
-      <div id="joyBase"></div>
-      <div id="joyKnob"></div>
+    <!-- Joystick (unten links) -->
+    <div id="joystick" aria-label="Joystick">
+      <div class="joystick-base" id="joystickBase"></div>
+      <div class="joystick-knob" id="joystickKnob"></div>
     </div>
   </div>
 
   <script>
-    // ============================================================
-    // Spiel-Setup (robust, browser-ready)
-    // ============================================================
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    // Spielkonstanten
     const CANVAS_W = 800;
     const CANVAS_H = 450;
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
     canvas.width = CANVAS_W;
     canvas.height = CANVAS_H;
 
-    // HUD-Elemente
+    // HUD Elemente
     const timeEl = document.getElementById('time');
     const scoreEl = document.getElementById('score');
     const diffHudEl = document.getElementById('diffNameHud');
-    const diffNameEl = document.getElementById('diffName');
+    const diffNamePanelEl = document.getElementById('diffName');
 
     // Overlay Buttons
     const overlay = document.getElementById('overlay');
     const startBtn = document.getElementById('startBtn');
     const pauseBtn = document.getElementById('pauseBtn');
-    const diffBtnList = Array.from(document.querySelectorAll('[data-diff]'));
+    const diffButtons = Array.from(document.querySelectorAll('[data-diff]'));
 
-    // Difficulty
-    let currentDiff = 2; // 1=Leicht, 2=Mittel, 3=Schwer
-    const diffNames = {1:'LEICHT', 2:'MITTEL', 3:'SCHWER'};
-
-    // Jet
-    const JET_W = 40, JET_H = 28;
+    // Farbe & Objekte
+    const JET_W = 40;
+    const JET_H = 28;
     const JET_Y_OFFSET = 18;
-    const jet = { x: CANVAS_W/2 - JET_W/2, y: CANVAS_H - JET_H - JET_Y_OFFSET, w: JET_W, h: JET_H, vx: 0, vy: 0 };
+    const jet = { x: CANVAS_W/2 - JET_W/2, y: CANVAS_H - JET_H - JET_Y_OFFSET, vx: 0, vy: 0, w: JET_W, h: JET_H };
 
-    // Joystick (2D)
-    const JOY_RADIUS = 60; // max Dist in px
+    // Joystick-Logik (2D)
+    const JOY_RADIUS = 60;
     let joyActive = false;
-    let joyX = 0, joyY = 0; // -1..1
-    let joyCenterX = 0, joyCenterY = 0;
+    let joyX = 0; // -1..1
+    let joyY = 0; // -1..1
+    let joyCenterX = 0;
+    let joyCenterY = 0;
     let joyPointerId = null;
-    const joyBase = document.getElementById('joyBase');
-    const joyKnob = document.getElementById('joyKnob');
+    const joyBase = document.getElementById('joystickBase');
+    const joyKnob = document.getElementById('joystickKnob');
 
-    // Sterne
-    const STAR_R = 12;
+    // Stars (Sterne)
+    const STAR_R = 10;
     let stars = [];
     let spawnTimer = 0;
-    let spawnInterval = 0.8;
-
-    // Game State
-    let running = false;
-    let lastTime = 0;
-    let reqId = null;
-    let timeLeft = 60;
+    let spawnInterval = 0.8; // Sekunden
     let score = 0;
+    let timeLeft = 60; // Sekunden
+    let lastTime = 0;
+    let running = false;
+    let requestId = null;
+
+    // Difficulty
+    let currentDiff = 2; // 1 Leicht, 2 Mittel, 3 Schwer
+    const diffNames = {1: 'LEICHT', 2: 'MITTEL', 3: 'SCHWER'};
 
     // Init Joystick Center
     function updateJoyCenter() {
-      const r = joyBase.getBoundingClientRect();
-      joyCenterX = r.left + r.width / 2;
-      joyCenterY = r.top + r.height / 2;
+      const rect = joyBase.getBoundingClientRect();
+      // Center innerhalb des Joysticks im Viewport
+      joyCenterX = rect.left + rect.width/2;
+      joyCenterY = rect.top + rect.height/2;
     }
 
-    // Collision: Kreis vs Rechteck
+    // Collision: Kreiss Stern vs Rechteck Jet
     function circleRectCollision(cx, cy, r, rx, ry, rw, rh) {
       const closestX = Math.max(rx, Math.min(cx, rx + rw));
       const closestY = Math.max(ry, Math.min(cy, ry + rh));
@@ -252,39 +251,40 @@
       return (dx*dx + dy*dy) <= (r*r);
     }
 
-    // Star erzeugen (zielgerichtet auf Jet)
+    // Star spawnen (auf den Jet zu)
     function spawnStar() {
       const x = Math.random() * (CANVAS_W - STAR_R*2) + STAR_R;
-      const targetX = jet.x + jet.w/2;
-      const targetY = jet.y + jet.h/2;
+      // Richtung Jet (leicht nach unten, variiert)
+      const targetX = jet.x + jet.w / 2;
+      const targetY = jet.y + jet.h / 2;
       const dx = targetX - x;
-      const dy = targetY - (-STAR_R); // von oben
+      const dy = targetY - (-STAR_R);
       const dist = Math.max(1, Math.hypot(dx, dy));
-      const baseSpeed = 80;
-      const speed = baseSpeed * (1 + (currentDiff - 1) * 0.6);
-      const vx = (dx / dist) * speed;
-      const vy = (dy / dist) * speed;
+      const baseVy = 60; // Grundgeschwindigkeit
+      const vy = baseVy * (1 + (currentDiff - 1) * 0.6);
+      const vx = (dx / dist) * vy * 0.6; // leichte Abweichung
       const colors = ['#FFFF00', '#FFD700', '#FFC000'];
-      const color = colors[Math.floor(Math.random() * colors.length)];
+      const color = colors[Math.floor(Math.random()*colors.length)];
       stars.push({ x, y: -STAR_R, r: STAR_R * (0.8 + Math.random()*0.4), vx, vy, color });
     }
 
-    // HUD
+    // HUD aktualisieren
     function updateHUD() {
       scoreEl.textContent = score;
       timeEl.textContent = Math.ceil(timeLeft);
       diffHudEl.textContent = diffNames[currentDiff];
-      diffNameEl.textContent = diffNames[currentDiff];
+      diffNamePanelEl.textContent = diffNames[currentDiff];
     }
 
-    // Reset
+    // Reset Spielzustand
     function resetGame() {
       stars.length = 0;
       spawnTimer = 0;
       spawnInterval = 0.8;
       jet.x = CANVAS_W/2 - JET_W/2;
       jet.y = CANVAS_H - JET_H - JET_Y_OFFSET;
-      jet.vx = 0; jet.vy = 0;
+      jet.vx = 0;
+      jet.vy = 0;
       score = 0;
       timeLeft = 60;
     }
@@ -292,30 +292,34 @@
     // Start / Pause / End
     function startGame() {
       resetGame();
+      updateHUD();
       timeLeft = 60;
       lastTime = performance.now();
       running = true;
+      if (requestId) cancelAnimationFrame(requestId);
+      requestId = requestAnimationFrame(loop);
       overlay.style.display = 'none';
-      if (reqId) cancelAnimationFrame(reqId);
-      reqId = requestAnimationFrame(loop);
     }
 
     function pauseGame() {
       running = false;
-      if (reqId) cancelAnimationFrame(reqId);
+      if (requestId) cancelAnimationFrame(requestId);
       overlay.style.display = 'flex';
     }
 
     function endGame() {
       running = false;
-      if (reqId) cancelAnimationFrame(reqId);
+      if (requestId) cancelAnimationFrame(requestId);
       overlay.style.display = 'flex';
       overlay.innerHTML = `
-        <div id="overlayPanel" style="text-align:center;">
+        <div id="overlayPanel">
           <h2>Game Over</h2>
-          <p>Score: ${score}</p>
-          <button class="btn primary" onclick="location.reload()">Neu Starten</button>
-        </div>`;
+          <p>Dein Score: ${score}</p>
+          <div>
+            <button class="btn primary" onclick="location.reload()">Neu starten</button>
+          </div>
+        </div>
+      `;
     }
 
     // Game Loop
@@ -327,10 +331,10 @@
       update(dt);
       draw();
 
-      if (running) reqId = requestAnimationFrame(loop);
+      if (running) requestId = requestAnimationFrame(loop);
     }
 
-    // Update
+    // Update Logik
     function update(dt) {
       if (!running) return;
 
@@ -340,16 +344,17 @@
         return;
       }
 
-      // Jet bewegt sich über Joystick (2D)
+      // Jet-Bewegung per Joystick (2D)
       const SPEED = 260;
       const targetVX = joyX * SPEED;
       const targetVY = joyY * SPEED;
+
       jet.vx += (targetVX - jet.vx) * 0.15;
       jet.vy += (targetVY - jet.vy) * 0.15;
       jet.x += jet.vx * dt;
       jet.y += jet.vy * dt;
 
-      // Bildschirmbegrenzung
+      // Randbegrenzung
       if (jet.x < 0) jet.x = 0;
       if (jet.x + jet.w > CANVAS_W) jet.x = CANVAS_W - jet.w;
       if (jet.y < 0) jet.y = 0;
@@ -363,7 +368,7 @@
         spawnInterval = Math.max(0.25, 0.8 - (currentDiff - 1) * 0.15);
       }
 
-      // Sterne bewegen & Kollisionsabfrage
+      // Sterne bewegen & Kollisionsabfragen
       for (let i = stars.length - 1; i >= 0; i--) {
         const s = stars[i];
         s.x += s.vx * dt;
@@ -373,30 +378,31 @@
           stars.splice(i, 1);
           score++;
           updateHUD();
-          // Optional: Endbedingung bei Score etc.
+          // Optional: maximaler Score könnte End condition sein
         }
 
+        // Entfernen, wenn außerhalb unten
         if (s.y - s.r > CANVAS_H) {
           stars.splice(i, 1);
         }
       }
 
-      // HUD aktualisieren
-      updateHUD();
+      // Keyboard-Status (optional Echtzeit-Verbesserung)
+      // Keine spezielle Logik nötig, Joystick-Status wird durch Tastatur gesetzt
     }
 
-    // Draw
     function drawJet() {
       ctx.fillStyle = '#00BFFF';
+      const x = jet.x;
+      const y = jet.y;
       ctx.beginPath();
-      const x = jet.x, y = jet.y;
       ctx.moveTo(x, y);
       ctx.lineTo(x + jet.w, y + jet.h/2);
       ctx.lineTo(x, y + jet.h);
       ctx.closePath();
       ctx.fill();
 
-      // Cockpit-Highlight
+      // Cockpit-Licht
       ctx.fillStyle = '#A8D8FF';
       ctx.fillRect(x + jet.w*0.25, y + jet.h*0.2, jet.w*0.5, jet.h*0.25);
     }
@@ -420,10 +426,15 @@
       drawJet();
     }
 
-    // Joystick Setup (2D)
+    // Joystick-Setup
+    function updateJoyCenterOnce() {
+      updateJoyCenter();
+    }
+
     function initJoystick() {
       updateJoyCenter();
       window.addEventListener('resize', updateJoyCenter);
+
       joyBase.style.touchAction = 'none';
       joyBase.addEventListener('pointerdown', (e) => {
         joyPointerId = e.pointerId;
@@ -462,37 +473,28 @@
       });
     }
 
-    function updateJoyCenter() {
-      const r = joyBase.getBoundingClientRect();
-      // Center der Joystick-Base im Viewport
-      joyCenterX = r.left + r.width/2;
-      joyCenterY = r.top + r.height/2;
-    }
-
-    // Difficulty setzen
-    function setDifficulty(diff) {
+    // Difficulty-Auswahl
+    function setDifficultyFromBtn(diff) {
       currentDiff = diff;
-      diffNameEl.textContent = diffNames[currentDiff];
+      diffNamePanelEl.textContent = diffNames[currentDiff];
       diffHudEl.textContent = diffNames[currentDiff];
     }
 
     // Overlay-Events
-    diffBtnList.forEach(btn => {
-      btn.addEventListener('click', () => setDifficulty(parseInt(btn.getAttribute('data-diff'), 10)));
-    });
-
+    diffButtons.forEach(btn => btn.addEventListener('click', () => {
+      setDifficultyFromBtn(parseInt(btn.getAttribute('data-diff'), 10));
+    }));
     startBtn.addEventListener('click', startGame);
     pauseBtn.addEventListener('click', pauseGame);
 
-    // Keyboard-Unterstützung als alternative Eingabe (Joystick-Vektor)
-    const keys = { left:false, right:false, up:false, down:false };
+    // Keyboard-Unterstützung (Alternative)
+    const keys = { left: false, right: false, up: false, down: false };
     function updateFromKeyboard() {
-      const vx = (keys.left? -1:0) + (keys.right? 1:0);
-      const vy = (keys.up? -1:0) + (keys.down? 1:0);
+      // Horizontal Steuerung über Joystick-Äquivalent
+      const vx = (keys.left ? -1 : 0) + (keys.right ? 1 : 0);
+      const vy = (keys.up ? -1 : 0) + (keys.down ? 1 : 0);
       joyX = vx;
       joyY = vy;
-      // Position des Joystick-Knaufs entsprechend aktualisieren, wenn gewünscht
-      // Hier lassen wir die Knopf-Position via Code-Logik unverändert, da der Joystick per Pointer gesteuert wird.
     }
     window.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
@@ -509,21 +511,23 @@
       updateFromKeyboard();
     });
 
-    // Init (DOM ready)
+    // Init
     window.addEventListener('load', () => {
-      // Standard-Difficulty
-      setDifficulty(2);
-      diffNameEl.textContent = diffNames[2];
-      diffHudEl.textContent = diffNames[2];
-      // Overlay sichtbar am Start
+      // Set default difficulty
+      setDifficultyFromBtn(currentDiff);
+      diffNamePanelEl.textContent = diffNames[currentDiff];
+      diffHudEl.textContent = diffNames[currentDiff];
+      // Overlay sichtbar am Anfang
       overlay.style.display = 'flex';
       // Joystick vorbereiten
       initJoystick();
+      // Center erfassen
       updateJoyCenter();
-      // Starte Loop erst durch Start-Button
-      resetGame();
+      // Startwerte im HUD
       updateHUD();
+      // Starte Loop nur nach Klick auf Start
     });
+
   </script>
 </body>
 </html>
