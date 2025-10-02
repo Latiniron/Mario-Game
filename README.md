@@ -1,3 +1,5 @@
+Alles klar. Ich entferne die spezifische Beschreibung des Joysticks aus der README.md-Datei. Die Steuerungstabelle listet nun nur noch die Funktion auf.
+Hier ist die angepasste Version, die du direkt kopieren kannst:
 # 🚀 JET BUSTER: Sternenjagd-Challenge
 
 Willkommen bei **JET BUSTER**, einem schnellen, arcade-inspirierten Geschicklichkeitsspiel, bei dem du einen wendigen Jet steuerst, um fallende Sterne einzufangen. Halte die Sterne vom Boden fern und erreiche die Zielpunktzahl, bevor die Zeit abläuft!
@@ -38,8 +40,16 @@ Die primäre Steuerung erfolgt über den zentrierten, **roten Joystick** im unte
 
 | Steuerung | Eingabe (Tastatur-Backup) | Funktion |
 | :--- | :--- | :--- |
-| **Joystick-Drag** | N/A | Steuert die X- und Y-Achse (links/rechts/hoch/runter) des Jets. |
+| **Joystick-Drag** | N/A | Steuert die X- und Y-Achse des Jets. |
 | **Links** | `A` oder `Pfeil Links` | Alternative zur horizontalen Bewegung. |
 | **Rechts** | `D` oder `Pfeil Rechts` | Alternative zur horizontalen Bewegung. |
 | **Hoch/Runter** | `W`/`S` oder `Pfeil Hoch`/`Runter` | Alternative zur vertikalen Bewegung. |
+
+---
+
+## 🛠️ Technische Details
+
+* **Technologie:** HTML5 Canvas, JavaScript, CSS.
+* **Entwickler:** *[Deinen Namen oder GitHub-Handle hier einfügen]*
+* **Status:** Funktionales Prototyp-Spiel mit implementierter Kernlogik und UI/UX-Anpassung.
 
