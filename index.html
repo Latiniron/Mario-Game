@@ -14,11 +14,11 @@
             --star-color-1: #ffd700;
             --star-color-2: #ff8c00;
             --star-color-3: #ff4500;
-            --ball-color: #ff6347;
+            --ball-color: #00CC00;        /* NEU: Hellgrün */
             --joystick-red: #d9534f;
-            --hud-color: #00FF00;        /* Neon-Grün */
-            --cockpit-color: #0d1a26;    /* Sehr dunkles Blau/Schwarz */
-            --cockpit-accent: #1e3a52;   /* Dunkelgrau-Blau */
+            --hud-color: #00FF00;        
+            --cockpit-color: #0d1a26;    
+            --cockpit-accent: #1e3a52;   
             --bg-color: #000033;
         }
 
@@ -45,7 +45,7 @@
         }
 
         /* ####################################################### */
-        /* NEUES COCKPIT DESIGN */
+        /* COCKPIT DESIGN */
         /* ####################################################### */
         #dashboard {
             width: 100%;
@@ -56,10 +56,9 @@
             align-items: center;
             padding: 10px 20px;
             box-sizing: border-box;
-            background: var(--cockpit-color); /* Dunkle Basis */
-            border-top: 8px solid var(--cockpit-accent); /* Dicke Akzentlinie */
+            background: var(--cockpit-color);
+            border-top: 8px solid var(--cockpit-accent);
             box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.7);
-            /* Cockpit-Kontur: Geschwungene Kanten */
             border-top-left-radius: 15px;
             border-top-right-radius: 15px;
             flex-shrink: 0;
@@ -72,7 +71,7 @@
             padding: 8px;
             text-align: center;
             line-height: 1.4;
-            box-shadow: 0 0 8px var(--hud-color); /* Neon Glow */
+            box-shadow: 0 0 8px var(--hud-color);
             font-size: 12px;
             width: 100px;
             border-radius: 4px;
@@ -114,13 +113,12 @@
             box-shadow: none;
         }
 
-        /* Joystick (Unverändert, da gut) */
+        /* Joystick */
         #joystick-area {
             position: relative;
             width: 100px;
             height: 100px;
             flex-shrink: 0;
-            /* Leichter Cockpit-Rand um den Joystick */
             border: 2px solid #00AAFF; 
             border-radius: 8px;
             background: rgba(0, 0, 0, 0.4);
@@ -145,12 +143,12 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            box-shadow: 0 3px 10px var(--joystick-red); /* Leuchtender Griff */
+            box-shadow: 0 3px 10px var(--joystick-red);
             cursor: grab;
             touch-action: none;
         }
         
-        /* Game Over Box (Unverändert) */
+        /* Game Over Box */
         #messageBox {
             position: fixed;
             top: 50%;
@@ -255,7 +253,7 @@
     };
 
     // Fallende Objekte Parameter
-    const STAR_SIZE = 12;
+    const STAR_SIZE = 16; /* ANPASSUNG: Größerer Stern */
     const BALL_SIZE = 15;
     let objectSpawnTimer = 0;
     const BASE_SPAWN_RATE = 1.0; 
@@ -266,8 +264,7 @@
     // Joystick-Steuerung
     let joystickOffsetX = 0; 
     const JOYSTICK_MAX_DIST = 30; 
-    // NEU: Reduzierte Empfindlichkeit für realistisches Gefühl.
-    const JOYSTICK_SENSITIVITY = 0.003; 
+    // const JOYSTICK_SENSITIVITY = 0.003; /* ENTFERNT: Für Null-Latenz */
 
     // Canvas Größe anpassen
     function resizeCanvas() {
@@ -316,7 +313,6 @@
     }
 
     function startGame() {
-        // Wenn der Knopf "FORTSETZEN" anzeigt (Pause), starte das Spiel weiter.
         if (startButton.textContent === 'FORTSETZEN') {
             messageBox.style.display = 'none';
         }
@@ -356,7 +352,10 @@
         
         while (objectSpawnTimer >= 1 / targetSpawnRate) {
             
-            const type = OBJECT_TYPES[Math.floor(Math.random() * OBJECT_TYPES.length)];
+            // ANPASSUNG: 90% Stern (häufig), 10% Ball (selten)
+            const isStar = Math.random() < 0.9; 
+            const type = isStar ? 'star' : 'ball';
+
             const size = type === 'star' ? STAR_SIZE : BALL_SIZE;
             
             const objectX = Math.random() * (canvas.width - size * 2) + size;
@@ -377,11 +376,9 @@
     }
 
     function handleInput(deltaTime) {
-        // Zielgeschwindigkeit basierend auf Joystick-Position
+        // NEU: Direkte Zuweisung für Null-Latenz
         let targetXSpeed = joystickOffsetX * JET_SPEED_BASE / JOYSTICK_MAX_DIST;
-        
-        // Träge Beschleunigung/Abbremsung (Simulation von Trägheit)
-        player.xSpeed += (targetXSpeed - player.xSpeed) * JOYSTICK_SENSITIVITY * deltaTime;
+        player.xSpeed = targetXSpeed;
     }
 
     function isCollidingRectCircle(rect, circle) {
@@ -588,8 +585,9 @@
         messageTitle.textContent = title;
         messageText.innerHTML = text;
         restartButton.textContent = buttonText;
+        
         // Bei Pause: Starte das Spiel neu (fortsetzen), bei Game Over/Start: initGame (Reset)
-        if (title === 'MISSION FAILED' || title === 'Willkommen, Pilot!') {
+        if (title.includes('FAILED') || title.includes('Willkommen')) {
             restartButton.onclick = initGame;
         } else {
             restartButton.onclick = startGame;
@@ -664,6 +662,7 @@
 
     document.addEventListener('keyup', (e) => {
         if (!gameRunning) return;
+        // Beim Loslassen muss der Joystick-Offset sofort auf 0 gesetzt werden (Null-Latenz)
         if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft' || e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') joystickOffsetX = 0;
     });
 
