@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Jet Buster Minimal</title>
+    <title>Jet Buster - Kommandozentrale</title>
     <style>
         /* CSS-Variablen */
         :root {
-            --jet-color: #00BFFF;
-            --star-color: #ffd700;
+            --jet-color: #00BFFF; /* Himmelblau für den Jet */
+            --star-color-1: #ffd700; /* Gelb (Gold) */
+            --star-color-2: #ff8c00; /* Orange */
+            --star-color-3: #ff4500; /* Rot-Orange */
             --ball-color: #ff6347;
             --joystick-red: #d9534f;
-            --hud-color: #ffffff;
+            --hud-color: #00FF00; /* Neongrün für das Dashboard-Display */
+            --dashboard-bg: #1a1a1a; /* Dunkler Konsolen-Hintergrund */
+            --dashboard-border: #333;
             --bg-color: #000033;
         }
 
@@ -25,11 +29,11 @@
             justify-content: flex-start;
             align-items: center;
             background-color: var(--bg-color);
-            font-family: monospace;
+            font-family: 'Courier New', monospace; /* Konsolen-Font */
             color: var(--hud-color);
         }
 
-        /* Das Canvas füllt den verfügbaren Platz im oberen Bereich */
+        /* Canvas */
         #gameCanvas {
             width: 100%;
             flex-grow: 1;
@@ -37,29 +41,67 @@
             image-rendering: pixelated;
         }
 
-        /* HUD-Bereich */
-        #hud {
+        /* Dashboard-Bereich (Kommandozentrale) */
+        #dashboard {
             width: 100%;
-            height: 40px; 
+            max-width: 100vw;
+            height: 150px; /* Feste Höhe für die Konsole */
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 15px;
+            padding: 10px 20px;
             box-sizing: border-box;
-            background: rgba(0, 0, 0, 0.5);
-            font-size: 14px;
+            background: var(--dashboard-bg);
+            border-top: 5px solid var(--dashboard-border);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
             flex-shrink: 0;
         }
-        
-        /* Controller-Bereich: Unter dem HUD */
-        #controller-area {
-            width: 100%;
-            height: 120px;
+
+        /* HUD-Displays innerhalb des Dashboards */
+        .dashboard-display {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--hud-color);
+            padding: 8px;
+            text-align: center;
+            line-height: 1.4;
+            box-shadow: 0 0 5px var(--hud-color);
+            font-size: 12px;
+            width: 120px;
+        }
+
+        /* Button Container */
+        .control-buttons {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #222;
-            flex-shrink: 0;
+            flex-direction: column;
+            gap: 10px;
+            width: 100px;
+        }
+
+        /* Buttons im Dashboard-Stil */
+        .dashboard-button {
+            padding: 8px 10px;
+            background: #444;
+            color: white;
+            border: 2px solid #888;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 11px;
+            transition: background 0.1s;
+        }
+        .dashboard-button:hover:not(:disabled) {
+            background: #555;
+        }
+        .dashboard-button.red {
+            background: #a00;
+            border-color: #f00;
+        }
+        .dashboard-button.green {
+            background: #060;
+            border-color: #0f0;
+        }
+        .dashboard-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         /* Minimalistischer Joystick-Stil */
@@ -67,6 +109,7 @@
             position: relative;
             width: 100px;
             height: 100px;
+            flex-shrink: 0;
         }
         #joystick-base {
             width: 80px;
@@ -77,6 +120,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
         }
         #joystick-handle {
             width: 40px;
@@ -87,7 +131,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            box-shadow: 0 3px 5px rgba(0,0,0,0.5);
             cursor: grab;
             touch-action: none;
         }
@@ -98,18 +142,20 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             padding: 30px;
             border-radius: 10px;
             text-align: center;
             color: #333;
-            border: 3px solid var(--star-color);
+            border: 3px solid var(--star-color-1);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
             z-index: 100;
             display: none;
         }
         #messageBox h2 {
             margin-top: 0;
             font-size: 1.5em;
+            color: #d9534f;
         }
         #messageBox button {
             padding: 10px 20px;
@@ -119,28 +165,45 @@
             cursor: pointer;
             margin-top: 15px;
             font-family: inherit;
+            font-size: 14px;
+        }
+        #github-link {
+            font-size: 10px;
+            color: var(--jet-color);
+            margin-top: 10px;
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
 
-    <div id="hud">
-        <span>Gefangen: <span id="score">0</span></span>
-        <span>Verpasst: <span id="missed">0</span> / 5</span>
-    </div>
-
     <canvas id="gameCanvas"></canvas>
 
-    <div id="controller-area">
+    <div id="dashboard">
+        <div class="dashboard-display">
+            STATUS: <span style="color:var(--hud-color)" id="status">INIT</span><br>
+            MISSED: <span id="missed">0</span> / <span id="max-missed">5</span>
+        </div>
+
         <div id="joystick-area">
             <div id="joystick-base"></div>
             <div id="joystick-handle"></div>
         </div>
+
+        <div class="control-buttons">
+            <div class="dashboard-display" style="width: 100%; margin-bottom: 5px;">
+                SCORE: <span id="score">0</span>
+            </div>
+            <button id="startButton" class="dashboard-button green">START</button>
+            <button id="stopButton" class="dashboard-button red" disabled>BEENDEN</button>
+        </div>
     </div>
 
     <div id="messageBox">
-        <h2 id="messageText">Bereit zum Start!</h2>
+        <h2 id="messageTitle">Willkommen!</h2>
+        <p id="messageText">Drücke **STARTEN**, um die Steuerung zu übernehmen.</p>
         <button id="restartButton">STARTEN</button>
+        <a id="github-link" href="https://github.io/Latiniron/To-the-moon/" target="_blank">Quellcode (Latiniron/To-the-moon)</a>
     </div>
 
 <script>
@@ -152,7 +215,12 @@
     const ctx = canvas.getContext('2d');
     const scoreEl = document.getElementById('score');
     const missedEl = document.getElementById('missed');
+    const maxMissedEl = document.getElementById('max-missed');
+    const statusEl = document.getElementById('status');
+    const startButton = document.getElementById('startButton');
+    const stopButton = document.getElementById('stopButton');
     const messageBox = document.getElementById('messageBox');
+    const messageTitle = document.getElementById('messageTitle');
     const messageText = document.getElementById('messageText');
     const restartButton = document.getElementById('restartButton');
     const MAX_MISSED = 5;
@@ -162,9 +230,10 @@
     let score = 0;
     let missedCount = 0;
     let animationFrameId;
+    let lastTime = 0; // Für zeitbasierte Steuerung
 
     // Jet-Parameter
-    const JET_SPEED = 5;
+    const JET_SPEED_BASE = 400; // Pixel pro Sekunde
     const JET_WIDTH = 60;
     const JET_HEIGHT = 40;
     const JET_BOTTOM_OFFSET = 30;
@@ -182,7 +251,8 @@
     const STAR_SIZE = 12;
     const BALL_SIZE = 15;
     let objectSpawnTimer = 0;
-    const BASE_SPAWN_RATE = 60;
+    const BASE_SPAWN_RATE = 1.0; // Spawns pro Sekunde
+    const STAR_COLORS = ['var(--star-color-1)', 'var(--star-color-2)', 'var(--star-color-3)'];
     const OBJECT_TYPES = ['star', 'ball'];
     let fallingObjects = []; 
     
@@ -190,16 +260,15 @@
     let joystickActive = false;
     let joystickOffsetX = 0; 
     const JOYSTICK_MAX_DIST = 30; 
-    const JOYSTICK_SENSITIVITY = 0.1;
+    const JOYSTICK_SENSITIVITY = 0.05; // Empfindlichkeit
 
     // Canvas Größe anpassen
     function resizeCanvas() {
-        const hudHeight = 40;
-        const controllerHeight = 120;
+        // Die Höhe wird dynamisch basierend auf den festen Höhen der HUD-Elemente berechnet
+        const dashboardHeight = 150; 
         
         canvas.width = window.innerWidth;
-        // Canvas füllt den Raum zwischen HUD und Controller
-        canvas.height = window.innerHeight - hudHeight - controllerHeight; 
+        canvas.height = window.innerHeight - dashboardHeight; 
        
         // Jet-Position aktualisieren
         player.x = (canvas.width - JET_WIDTH) / 2;
@@ -218,16 +287,23 @@
         fallingObjects = [];
         objectSpawnTimer = 0;
         
-        resizeCanvas(); // Stellt sicher, dass die Größe stimmt
+        resizeCanvas(); 
         
         player.x = (canvas.width - JET_WIDTH) / 2;
         player.y = canvas.height - JET_HEIGHT - JET_BOTTOM_OFFSET;
         player.xSpeed = 0;
 
         scoreEl.textContent = score;
-        missedEl.textContent = `${missedCount} / ${MAX_MISSED}`;
+        missedEl.textContent = missedCount;
+        maxMissedEl.textContent = MAX_MISSED;
+        statusEl.textContent = 'READY';
+        statusEl.style.color = 'var(--hud-color)';
 
         messageBox.style.display = 'none';
+        
+        // Initialisiere die Joystick-Position
+        const joystickHandle = document.getElementById('joystick-handle');
+        joystickHandle.style.transform = 'translate(-50%, -50%)';
     }
 
     function startGame() {
@@ -235,32 +311,61 @@
         initGame();
         
         gameRunning = true;
+        startButton.disabled = true;
+        stopButton.disabled = false;
+        statusEl.textContent = 'ACTIVE';
+        statusEl.style.color = 'red';
 
+        lastTime = performance.now();
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         animationFrameId = requestAnimationFrame(gameLoop);
     }
-    window.startGame = startGame;
 
-    function spawnObject() {
-        const type = OBJECT_TYPES[Math.floor(Math.random() * OBJECT_TYPES.length)];
-        const size = type === 'star' ? STAR_SIZE : BALL_SIZE;
-        
-        const objectX = Math.random() * (canvas.width - size * 2) + size;
-        const baseSpeed = 2 + (score / 50);
-        const speed = baseSpeed + Math.random() * 1.5;
-        
-        fallingObjects.push({
-            x: objectX,
-            y: -size,
-            radius: size,
-            speed: speed,
-            type: type,
-        });
+    function stopGame() {
+        cancelAnimationFrame(animationFrameId);
+        gameRunning = false;
+        startButton.disabled = false;
+        stopButton.disabled = true;
+        statusEl.textContent = 'PAUSED';
+        statusEl.style.color = 'var(--star-color-1)';
+
+        showEndMessage('PAUSE', `Spiel pausiert. Dein Score: ${score}.`, 'FORTSETZEN');
     }
 
-    function handleInput() {
-        let targetXSpeed = joystickOffsetX * JOYSTICK_SENSITIVITY * JET_SPEED;
-        player.xSpeed += (targetXSpeed - player.xSpeed) * 0.2; 
+    function spawnObject(deltaTime) {
+        // Die Spawn-Rate wird dynamisch angepasst, basierend auf der Zeit
+        const targetSpawnRate = Math.max(0.5, BASE_SPAWN_RATE + Math.floor(score / 20) * 0.2); // Zunahme pro 20 Punkte
+        
+        objectSpawnTimer += deltaTime / 1000; // In Sekunden
+        
+        while (objectSpawnTimer >= 1 / targetSpawnRate) {
+            
+            const type = OBJECT_TYPES[Math.floor(Math.random() * OBJECT_TYPES.length)];
+            const size = type === 'star' ? STAR_SIZE : BALL_SIZE;
+            
+            const objectX = Math.random() * (canvas.width - size * 2) + size;
+            const baseSpeed = 200; // Pixel pro Sekunde
+            const speed = baseSpeed + (score * 5); // Geschwindigkeit steigt mit Score
+            
+            fallingObjects.push({
+                x: objectX,
+                y: -size,
+                radius: size,
+                speed: speed, // In Px/s
+                type: type,
+                color: type === 'star' ? STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)] : 'var(--ball-color)',
+            });
+            
+            objectSpawnTimer -= 1 / targetSpawnRate;
+        }
+    }
+
+    function handleInput(deltaTime) {
+        // Joystick/Tastatur bestimmt die Zielgeschwindigkeit (in Px/s)
+        let targetXSpeed = joystickOffsetX * JET_SPEED_BASE / JOYSTICK_MAX_DIST;
+        
+        // Sanfter Übergang zur Zielgeschwindigkeit (frame-rate unabhängig)
+        player.xSpeed += (targetXSpeed - player.xSpeed) * 0.005 * deltaTime;
     }
 
     function isCollidingRectCircle(rect, circle) {
@@ -276,26 +381,22 @@
     function update(deltaTime) {
         if (!gameRunning) return;
 
-        handleInput();
-        player.x += player.xSpeed;
+        spawnObject(deltaTime);
+        handleInput(deltaTime);
         
+        // Spieler-Bewegung (frame-rate unabhängig)
+        player.x += player.xSpeed * (deltaTime / 1000); // xSpeed in Px/s
+
         // Randbegrenzung
         if (player.x < 0) player.x = 0;
         if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
         
-        // Objekt-Logik
-        objectSpawnTimer++;
-        const spawnRate = Math.max(25, BASE_SPAWN_RATE - Math.floor(score / 10) * 5);
-        if (objectSpawnTimer >= spawnRate) {
-            spawnObject();
-            objectSpawnTimer = 0;
-        }
-
         // Objekt-Bewegung und Kollision
         for (let i = fallingObjects.length - 1; i >= 0; i--) {
             const obj = fallingObjects[i];
             
-            obj.y += obj.speed;
+            // Objekt-Bewegung (frame-rate unabhängig)
+            obj.y += obj.speed * (deltaTime / 1000);
 
             if (isCollidingRectCircle(player, { x: obj.x, y: obj.y, radius: obj.radius })) {
                 score++;
@@ -313,7 +414,7 @@
         }
         
         scoreEl.textContent = score;
-        missedEl.textContent = `${missedCount} / ${MAX_MISSED}`;
+        missedEl.textContent = missedCount;
     }
 
     // ***************************************************************
@@ -334,8 +435,8 @@
         let y = obj.y;
         let step = Math.PI / spikes;
 
-        ctx.strokeStyle = 'var(--star-color)';
-        ctx.fillStyle = 'var(--star-color)';
+        ctx.strokeStyle = obj.color;
+        ctx.fillStyle = obj.color;
         ctx.beginPath();
         ctx.moveTo(x, y - outerRadius);
 
@@ -356,7 +457,7 @@
     }
 
     function drawBall(obj) {
-        ctx.fillStyle = 'var(--ball-color)';
+        ctx.fillStyle = obj.color;
         ctx.beginPath();
         ctx.arc(obj.x, obj.y, obj.radius, 0, Math.PI * 2);
         ctx.fill();
@@ -380,9 +481,10 @@
         // Cockpit
         drawRect(p.x + p.width * 0.3, p.y, p.width * 0.4, p.height * 0.4, '#ADD8E6');
 
-        // Düsen (hinten)
-        drawRect(p.x + p.width * 0.1, p.y + p.height * 0.85, p.width * 0.2, p.height * 0.15, '#FF4500');
-        drawRect(p.x + p.width * 0.7, p.y + p.height * 0.85, p.width * 0.2, p.height * 0.15, '#FF4500');
+        // Düsen (Feuer)
+        const fireColor = gameRunning ? (score % 2 === 0 ? '#FFA500' : '#FF4500') : '#555'; // Flackern, wenn aktiv
+        drawRect(p.x + p.width * 0.1, p.y + p.height * 0.85, p.width * 0.2, p.height * 0.15, fireColor);
+        drawRect(p.x + p.width * 0.7, p.y + p.height * 0.85, p.width * 0.2, p.height * 0.15, fireColor);
     }
 
     function draw() {
@@ -404,7 +506,8 @@
     // ***************************************************************
 
     function gameLoop(timestamp) {
-        const deltaTime = 1000 / 60;
+        const deltaTime = timestamp - lastTime;
+        lastTime = timestamp;
         
         if (gameRunning) {
             update(deltaTime);
@@ -421,15 +524,20 @@
     function gameOver() {
         cancelAnimationFrame(animationFrameId);
         gameRunning = false;
+        startButton.disabled = false;
+        stopButton.disabled = true;
+        statusEl.textContent = 'DESTROYED';
+        statusEl.style.color = 'red';
         
-        let message = `GAME OVER! Du hast ${missedCount} Objekte verpasst. Dein Score: ${score}.`;
-        showEndMessage(message);
+        let message = `Du hast ${missedCount} Objekte verpasst. Dein finaler Score: **${score}**.`;
+        showEndMessage('GAME OVER', message, 'NEU STARTEN');
     }
 
-    function showEndMessage(text) {
-        messageText.textContent = text;
-        restartButton.textContent = 'NEU STARTEN';
-        restartButton.onclick = startGame; 
+    function showEndMessage(title, text, buttonText) {
+        messageTitle.textContent = title;
+        messageText.innerHTML = text;
+        restartButton.textContent = buttonText;
+        restartButton.onclick = (title === 'PAUSE' ? startGame : initGame); // Bei Pause weiterspielen, bei GameOver/Start neu initialisieren
         messageBox.style.display = 'block';
     }
 
@@ -493,10 +601,12 @@
     
     // Tastatur-Events (für PC)
     document.addEventListener('keydown', (e) => {
-        if (!gameRunning && e.key === 'Enter') startGame();
+        if (!gameRunning && (e.key === 'Enter' || e.key === ' ')) startGame();
         if (!gameRunning) return;
         if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') joystickOffsetX = -JOYSTICK_MAX_DIST;
         if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') joystickOffsetX = JOYSTICK_MAX_DIST;
+        
+        if (e.key === 'Escape' && gameRunning) stopGame();
     });
 
     document.addEventListener('keyup', (e) => {
@@ -510,20 +620,18 @@
     // ***************************************************************
     
     document.addEventListener('DOMContentLoaded', () => {
-        // Starte den Loop, um den Jet im Startscreen zu zeichnen
         resizeCanvas();
         initGame();
         
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         animationFrameId = requestAnimationFrame(gameLoop);
         
-        // Starte das Spiel, wenn auf den Button geklickt wird
-        restartButton.onclick = startGame;
+        // Buttons verknüpfen
+        startButton.onclick = startGame;
+        stopButton.onclick = stopGame;
         
         // Zeige Start-Nachricht
-        messageText.textContent = 'Willkommen bei Jet Buster! Steuere das Raumschiff, um Sterne und Bälle zu fangen.';
-        restartButton.textContent = 'SPIEL STARTEN';
-        messageBox.style.display = 'block';
+        showEndMessage('JET BUSTER', 'Steuere dein Schiff, um Sterne und Bälle zu fangen.<br>Viel Glück, Pilot!', 'STARTEN');
     });
 </script>
 
