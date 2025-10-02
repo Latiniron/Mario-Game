@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jet Star Collector</title>
+  <title>Jet Star Collector - Spiel</title>
   <style>
     :root {
       --jet-color: #00BFFF;
-      --jet-cockpit: #ADD8E6;
-      --star-1: #FFFF00;
-      --star-2: #FFD700;
-      --star-3: #FFC000;
-      --hud-bg: rgba(0, 0, 0, 0.65);
-      --joystick-base: rgba(255,255,255,0.15);
+      --star1: #FFFF00;
+      --star2: #FFD700;
+      --star3: #FFC000;
+      --hud-bg: rgba(0,0,0,.65);
+      --bg: #0b0b12;
+      --panel: #1e1e1e;
+      --joystick-base: rgba(255,255,255,.15);
       --joystick-knob: #eeeeee;
-      --bg: #000033;
     }
 
     html, body {
@@ -24,39 +24,506 @@
       font-family: "Courier New", monospace;
       color: #9ff0a8;
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
     }
 
-    /* Spiel-Container */
     #gameContainer {
-      width: min(900px, 92vw);
+      width: min(980px, 94vw);
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 12px;
+      padding: 12px;
     }
 
     /* Spielbereich */
     #gameCanvas {
       width: 100%;
+      height: 480px;
       max-width: 800px;
-      height: 450px;
       background: #000033;
       border: 3px solid #333;
       border-radius: 8px;
-      image-rendering: pixelated;
       display: block;
+      image-rendering: pixelated;
     }
 
-    /* HUD (oben) */
+    /* HUD über dem Canvas (oben) */
     #hud {
-      position: relative;
-      width: 100%;
-      max-width: 800px;
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 12px;
+      padding: 8px 12px;
       background: var(--hud-bg);
       border-radius: 6px;
+      font-size: 14px;
+      z-index: 2;
+    }
+
+    /* Joystick unten links */
+    #joyZone {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      width: 120px;
+      height: 120px;
+      z-index: 2;
+    }
+    #joyBase {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: var(--joystick-base);
+      border: 2px solid rgba(255,255,255,.6);
+      position: absolute;
+      left: 0;
+      top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #joyKnob {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--joystick-knob);
+      border: 2px solid #aaa;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 4px 8px rgba(0,0,0,.5);
+      touch-action: none;
+    }
+
+    /* Overlay Start/End */
+    #overlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,.65);
+      z-index: 4;
+      padding: 20px;
+    }
+    #overlay.active { display: flex; }
+    #overlayPanel {
+      background: rgba(0,0,0,.85);
+      padding: 22px;
+      border-radius: 12px;
+      text-align: center;
+      color: #fff;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 8px 25px rgba(0,0,0,.6);
+    }
+    #overlayPanel h2 { margin: 0 0 6px 0; font-size: 26px; }
+    #overlayPanel p { margin: 0 0 12px 0; font-size: 14px; }
+
+    .btn {
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 0;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    .btn.primary { background: #4f46e5; color: white; }
+    .btn.secondary { background: #374151; color: white; }
+
+    @media (max-width: 700px) {
+      #hud { font-size: 12px; }
+      #gameCanvas { height: 420px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="gameContainer" aria-label="Jet Spiel Container" style="position:relative;">
+    <!-- Overlay Start -->
+    <div id="overlay" class="overlay" aria-label="Spiel Start Overlay">
+      <div id="overlayPanel">
+        <h2>Jet Star Collector</h2>
+        <p>Wähle eine Schwierigkeit und starte das Spiel.</p>
+        <div id="difficulty-select" style="margin:8px 0;" aria-label="Schwierigkeit auswählen">
+          <button class="btn" data-diff="1" aria-label="Leicht">LEICHT</button>
+          <button class="btn" data-diff="2" aria-label="Mittel">MITTEL</button>
+          <button class="btn" data-diff="3" aria-label="Schwer">SCHWER</button>
+        </div>
+        <div style="margin-top:6px;">
+          <button id="startBtn" class="btn primary" aria-label="Spiel Starten">Start</button>
+          <button id="pauseBtn" class="btn secondary" aria-label="Spiel Beenden">Beenden</button>
+        </div>
+        <div id="selectedDiff" style="margin-top:8px; font-size:12px;">
+          Schwierigkeit: <span id="diffName">MITTEL</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HUD (über dem Canvas) -->
+    <div id="hud" aria-label="HUD Anzeige" style="position:absolute;">
+      <div>Time: <span id="time">60</span>s</div>
+      <div>Score: <span id="score">0</span></div>
+      <div>Diff: <span id="diffNameHud">MITTEL</span></div>
+    </div>
+
+    <!-- Spiel-Fläche -->
+    <canvas id="gameCanvas" width="800" height="450" aria-label="Spielbereich"></canvas>
+
+    <!-- Joystick -->
+    <div id="joyZone" aria-label="Joystick Zone">
+      <div id="joyBase"></div>
+      <div id="joyKnob"></div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // Spiel-Setup (robust, browser-ready)
+    // ============================================================
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const CANVAS_W = 800;
+    const CANVAS_H = 450;
+    canvas.width = CANVAS_W;
+    canvas.height = CANVAS_H;
+
+    // HUD-Elemente
+    const timeEl = document.getElementById('time');
+    const scoreEl = document.getElementById('score');
+    const diffHudEl = document.getElementById('diffNameHud');
+    const diffNameEl = document.getElementById('diffName');
+
+    // Overlay Buttons
+    const overlay = document.getElementById('overlay');
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const diffBtnList = Array.from(document.querySelectorAll('[data-diff]'));
+
+    // Difficulty
+    let currentDiff = 2; // 1=Leicht, 2=Mittel, 3=Schwer
+    const diffNames = {1:'LEICHT', 2:'MITTEL', 3:'SCHWER'};
+
+    // Jet
+    const JET_W = 40, JET_H = 28;
+    const JET_Y_OFFSET = 18;
+    const jet = { x: CANVAS_W/2 - JET_W/2, y: CANVAS_H - JET_H - JET_Y_OFFSET, w: JET_W, h: JET_H, vx: 0, vy: 0 };
+
+    // Joystick (2D)
+    const JOY_RADIUS = 60; // max Dist in px
+    let joyActive = false;
+    let joyX = 0, joyY = 0; // -1..1
+    let joyCenterX = 0, joyCenterY = 0;
+    let joyPointerId = null;
+    const joyBase = document.getElementById('joyBase');
+    const joyKnob = document.getElementById('joyKnob');
+
+    // Sterne
+    const STAR_R = 12;
+    let stars = [];
+    let spawnTimer = 0;
+    let spawnInterval = 0.8;
+
+    // Game State
+    let running = false;
+    let lastTime = 0;
+    let reqId = null;
+    let timeLeft = 60;
+    let score = 0;
+
+    // Init Joystick Center
+    function updateJoyCenter() {
+      const r = joyBase.getBoundingClientRect();
+      joyCenterX = r.left + r.width / 2;
+      joyCenterY = r.top + r.height / 2;
+    }
+
+    // Collision: Kreis vs Rechteck
+    function circleRectCollision(cx, cy, r, rx, ry, rw, rh) {
+      const closestX = Math.max(rx, Math.min(cx, rx + rw));
+      const closestY = Math.max(ry, Math.min(cy, ry + rh));
+      const dx = cx - closestX;
+      const dy = cy - closestY;
+      return (dx*dx + dy*dy) <= (r*r);
+    }
+
+    // Star erzeugen (zielgerichtet auf Jet)
+    function spawnStar() {
+      const x = Math.random() * (CANVAS_W - STAR_R*2) + STAR_R;
+      const targetX = jet.x + jet.w/2;
+      const targetY = jet.y + jet.h/2;
+      const dx = targetX - x;
+      const dy = targetY - (-STAR_R); // von oben
+      const dist = Math.max(1, Math.hypot(dx, dy));
+      const baseSpeed = 80;
+      const speed = baseSpeed * (1 + (currentDiff - 1) * 0.6);
+      const vx = (dx / dist) * speed;
+      const vy = (dy / dist) * speed;
+      const colors = ['#FFFF00', '#FFD700', '#FFC000'];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      stars.push({ x, y: -STAR_R, r: STAR_R * (0.8 + Math.random()*0.4), vx, vy, color });
+    }
+
+    // HUD
+    function updateHUD() {
+      scoreEl.textContent = score;
+      timeEl.textContent = Math.ceil(timeLeft);
+      diffHudEl.textContent = diffNames[currentDiff];
+      diffNameEl.textContent = diffNames[currentDiff];
+    }
+
+    // Reset
+    function resetGame() {
+      stars.length = 0;
+      spawnTimer = 0;
+      spawnInterval = 0.8;
+      jet.x = CANVAS_W/2 - JET_W/2;
+      jet.y = CANVAS_H - JET_H - JET_Y_OFFSET;
+      jet.vx = 0; jet.vy = 0;
+      score = 0;
+      timeLeft = 60;
+    }
+
+    // Start / Pause / End
+    function startGame() {
+      resetGame();
+      timeLeft = 60;
+      lastTime = performance.now();
+      running = true;
+      overlay.style.display = 'none';
+      if (reqId) cancelAnimationFrame(reqId);
+      reqId = requestAnimationFrame(loop);
+    }
+
+    function pauseGame() {
+      running = false;
+      if (reqId) cancelAnimationFrame(reqId);
+      overlay.style.display = 'flex';
+    }
+
+    function endGame() {
+      running = false;
+      if (reqId) cancelAnimationFrame(reqId);
+      overlay.style.display = 'flex';
+      overlay.innerHTML = `
+        <div id="overlayPanel" style="text-align:center;">
+          <h2>Game Over</h2>
+          <p>Score: ${score}</p>
+          <button class="btn primary" onclick="location.reload()">Neu Starten</button>
+        </div>`;
+    }
+
+    // Game Loop
+    function loop(now) {
+      if (!lastTime) lastTime = now;
+      const dt = Math.min(0.033, (now - lastTime) / 1000);
+      lastTime = now;
+
+      update(dt);
+      draw();
+
+      if (running) reqId = requestAnimationFrame(loop);
+    }
+
+    // Update
+    function update(dt) {
+      if (!running) return;
+
+      timeLeft -= dt;
+      if (timeLeft <= 0) {
+        endGame();
+        return;
+      }
+
+      // Jet bewegt sich über Joystick (2D)
+      const SPEED = 260;
+      const targetVX = joyX * SPEED;
+      const targetVY = joyY * SPEED;
+      jet.vx += (targetVX - jet.vx) * 0.15;
+      jet.vy += (targetVY - jet.vy) * 0.15;
+      jet.x += jet.vx * dt;
+      jet.y += jet.vy * dt;
+
+      // Bildschirmbegrenzung
+      if (jet.x < 0) jet.x = 0;
+      if (jet.x + jet.w > CANVAS_W) jet.x = CANVAS_W - jet.w;
+      if (jet.y < 0) jet.y = 0;
+      if (jet.y + jet.h > CANVAS_H) jet.y = CANVAS_H - jet.h;
+
+      // Sterne spawnen
+      spawnTimer += dt;
+      if (spawnTimer >= spawnInterval) {
+        spawnStar();
+        spawnTimer = 0;
+        spawnInterval = Math.max(0.25, 0.8 - (currentDiff - 1) * 0.15);
+      }
+
+      // Sterne bewegen & Kollisionsabfrage
+      for (let i = stars.length - 1; i >= 0; i--) {
+        const s = stars[i];
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
+
+        if (circleRectCollision(s.x, s.y, s.r, jet.x, jet.y, jet.w, jet.h)) {
+          stars.splice(i, 1);
+          score++;
+          updateHUD();
+          // Optional: Endbedingung bei Score etc.
+        }
+
+        if (s.y - s.r > CANVAS_H) {
+          stars.splice(i, 1);
+        }
+      }
+
+      // HUD aktualisieren
+      updateHUD();
+    }
+
+    // Draw
+    function drawJet() {
+      ctx.fillStyle = '#00BFFF';
+      ctx.beginPath();
+      const x = jet.x, y = jet.y;
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + jet.w, y + jet.h/2);
+      ctx.lineTo(x, y + jet.h);
+      ctx.closePath();
+      ctx.fill();
+
+      // Cockpit-Highlight
+      ctx.fillStyle = '#A8D8FF';
+      ctx.fillRect(x + jet.w*0.25, y + jet.h*0.2, jet.w*0.5, jet.h*0.25);
+    }
+
+    function drawStars() {
+      for (const s of stars) {
+        ctx.fillStyle = s.color;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
+
+    function draw() {
+      // Hintergrund
+      ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+      ctx.fillStyle = '#000033';
+      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+      drawStars();
+      drawJet();
+    }
+
+    // Joystick Setup (2D)
+    function initJoystick() {
+      updateJoyCenter();
+      window.addEventListener('resize', updateJoyCenter);
+      joyBase.style.touchAction = 'none';
+      joyBase.addEventListener('pointerdown', (e) => {
+        joyPointerId = e.pointerId;
+        joyBase.setPointerCapture(joyPointerId);
+        const dx = e.clientX - joyCenterX;
+        const dy = e.clientY - joyCenterY;
+        const dist = Math.hypot(dx, dy) || 1;
+        const nx = (dx / dist) * Math.min(dist, JOY_RADIUS);
+        const ny = (dy / dist) * Math.min(dist, JOY_RADIUS);
+        joyX = nx / JOY_RADIUS;
+        joyY = ny / JOY_RADIUS;
+        joyKnob.style.transform = `translate(${nx}px, ${ny}px)`;
+        joyActive = true;
+        e.preventDefault();
+      });
+      window.addEventListener('pointermove', (e) => {
+        if (!joyActive) return;
+        const dx = e.clientX - joyCenterX;
+        const dy = e.clientY - joyCenterY;
+        const dist = Math.hypot(dx, dy) || 1;
+        const clamped = Math.min(dist, JOY_RADIUS);
+        const nx = (dx / dist) * clamped;
+        const ny = (dy / dist) * clamped;
+        joyX = nx / JOY_RADIUS;
+        joyY = ny / JOY_RADIUS;
+        joyKnob.style.transform = `translate(${nx}px, ${ny}px)`;
+      });
+      window.addEventListener('pointerup', (e) => {
+        if (e.pointerId === joyPointerId) {
+          joyActive = false;
+          joyPointerId = null;
+          joyX = 0; joyY = 0;
+          joyKnob.style.transform = 'translate(0,0)';
+          joyBase.releasePointerCapture(e.pointerId);
+        }
+      });
+    }
+
+    function updateJoyCenter() {
+      const r = joyBase.getBoundingClientRect();
+      // Center der Joystick-Base im Viewport
+      joyCenterX = r.left + r.width/2;
+      joyCenterY = r.top + r.height/2;
+    }
+
+    // Difficulty setzen
+    function setDifficulty(diff) {
+      currentDiff = diff;
+      diffNameEl.textContent = diffNames[currentDiff];
+      diffHudEl.textContent = diffNames[currentDiff];
+    }
+
+    // Overlay-Events
+    diffBtnList.forEach(btn => {
+      btn.addEventListener('click', () => setDifficulty(parseInt(btn.getAttribute('data-diff'), 10)));
+    });
+
+    startBtn.addEventListener('click', startGame);
+    pauseBtn.addEventListener('click', pauseGame);
+
+    // Keyboard-Unterstützung als alternative Eingabe (Joystick-Vektor)
+    const keys = { left:false, right:false, up:false, down:false };
+    function updateFromKeyboard() {
+      const vx = (keys.left? -1:0) + (keys.right? 1:0);
+      const vy = (keys.up? -1:0) + (keys.down? 1:0);
+      joyX = vx;
+      joyY = vy;
+      // Position des Joystick-Knaufs entsprechend aktualisieren, wenn gewünscht
+      // Hier lassen wir die Knopf-Position via Code-Logik unverändert, da der Joystick per Pointer gesteuert wird.
+    }
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
+      if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
+      if (e.key === 'ArrowUp' || e.key === 'w') keys.up = true;
+      if (e.key === 'ArrowDown' || e.key === 's') keys.down = true;
+      updateFromKeyboard();
+    });
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = false;
+      if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
+      if (e.key === 'ArrowUp' || e.key === 'w') keys.up = false;
+      if (e.key === 'ArrowDown' || e.key === 's') keys.down = false;
+      updateFromKeyboard();
+    });
+
+    // Init (DOM ready)
+    window.addEventListener('load', () => {
+      // Standard-Difficulty
+      setDifficulty(2);
+      diffNameEl.textContent = diffNames[2];
+      diffHudEl.textContent = diffNames[2];
+      // Overlay sichtbar am Start
+      overlay.style.display = 'flex';
+      // Joystick vorbereiten
+      initJoystick();
+      updateJoyCenter();
+      // Starte Loop erst durch Start-Button
+      resetGame();
+      updateHUD();
+    });
+  </script>
+</body>
+</html>
