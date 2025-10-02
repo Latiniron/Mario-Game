@@ -9,14 +9,23 @@
   <meta property="og:type" content="article">
   <meta property="og:image" content="https://latiniron.github.io/Mario-Game/MarioGame.jpg">
   <style>
+    /* Farben, inspiriert vom NES-Stil */
     :root{--bg:#78c0ff;--ground:#6b4f2f;--block:#c77f3a;--player:#ffdd57;--enemy:#d9534f;--coin:#ffd700}
     html,body{height:100%;margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);}
     #gameWrap{display:flex;flex-direction:column;align-items:center;padding:12px;position:relative;}
     
-    /* 1. Responsive Canvas */
-    canvas{background:linear-gradient(#78c0ff 0%, #a0e1ff 60%);border:6px solid #333;border-radius:8px;image-rendering:pixelated; width: 100%; max-width: 800px; height: auto;}
+    /* Responsive Canvas */
+    canvas{
+      background:linear-gradient(#78c0ff 0%, #a0e1ff 60%);
+      border:6px solid #333;
+      border-radius:8px;
+      image-rendering:pixelated; 
+      width: 100%; 
+      max-width: 800px; 
+      height: auto;
+      touch-action: none; /* VERBESSERT: Verhindert Scrollen/Zoomen im Canvas auf Touch-Geräten */
+    }
     
-    /* Responsive Anpassungen für kleine Bildschirme */
     @media (max-width: 820px) {
         canvas {
             width: 95%;
@@ -36,7 +45,7 @@
     .screenshot img{max-width:100%;border-radius:6px;border:1px solid rgba(0,0,0,0.08)}
     #footerNote{max-width:800px;margin-top:8px;color:#222;font-size:12px;opacity:0.9}
 
-    /* 2. Styles für die virtuellen Touch-Buttons */
+    /* Styles für die virtuellen Touch-Buttons (nur auf Handy sichtbar) */
     #touch-controls {
       position: fixed;
       bottom: 0;
@@ -50,7 +59,6 @@
       pointer-events: none;
     }
 
-    /* Nur auf Mobilgeräten anzeigen */
     @media (max-width: 600px) {
       #touch-controls {
         display: flex;
@@ -70,7 +78,7 @@
       cursor: pointer;
       user-select: none;
       pointer-events: auto;
-      touch-action: manipulation;
+      touch-action: manipulation; /* Verbessert: Stellt sicher, dass das Tippen funktioniert */
       border: 3px solid rgba(255, 255, 255, 0.8);
       opacity: 0.8;
     }
@@ -129,102 +137,261 @@
   </div>
 
   <script>
-    // **************************************************************************************
-    // SCHRITT 1: FÜGE HIER DEINEN VOLLSTÄNDIGEN MARIO-SPIELCODE (die Engine) EIN!
-    // Stellen Sie sicher, dass Ihr Code eine `window.keys = { left: false, right: false, up: false }`
-    // oder ein ähnliches Steuerungsobjekt verwendet.
-    // **************************************************************************************
+    // ***************************************************************
+    // SCHRITT 1: SPIELVARIABLEN UND SETUP
+    // ***************************************************************
 
-    // Annahme: Wenn Ihr Code window.keys nicht definiert, wird es hier als Platzhalter erstellt:
-    window.keys = window.keys || { left: false, right: false, up: false }; 
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const CANVAS_WIDTH = 800;
+    const CANVAS_HEIGHT = 450;
+    
+    // Setzt das keys-Objekt für PC- und Mobile-Steuerung
+    window.keys = { 
+        left: false, 
+        right: false, 
+        up: false 
+    }; 
+    
+    // Globale Spielvariablen
+    let score = 0;
+    let lives = 3;
+    let gameRunning = false;
+    const GRAVITY = 0.8; 
+    const JUMP_POWER = -15; 
 
-
-    // **************************************************************************************
-    // SCHRITT 2: NEUSTART-FUNKTION FÜR DEN BUTTON
-    // **************************************************************************************
-
-    /**
-     * Setzt das Spiel zurück. DIES IST DIE FUNKTION FÜR DEN BUTTON!
-     */
-    window.restartGame = function() {
-        console.log("Spiel wird neu gestartet...");
-        
-        // ******************************************************************************
-        // BITTE HIER DEINE EIGENE SPIEL-RESET-LOGIK EINFÜGEN!
-        // (z.B. Spielerposition zurücksetzen, Level neu laden, Punkte/Leben zurücksetzen)
-        // ******************************************************************************
-
-        // Beispiel-Reset der HUD-Anzeige (Muss mit den echten Spielvariablen übereinstimmen)
-        document.getElementById('score').textContent = '0';
-        document.getElementById('lives').textContent = '3';
+    // Spieler-Objekt (Mario)
+    let player = {
+        x: 50,
+        y: CANVAS_HEIGHT - 60, 
+        width: 25,
+        height: 35,
+        xSpeed: 0,
+        ySpeed: 0, 
+        maxSpeed: 5,
+        isGrounded: false,
+    };
+    
+    // Die Welt: Ein einfacher Boden
+    const groundHeight = 20;
+    const ground = {
+        x: 0,
+        y: CANVAS_HEIGHT - groundHeight,
+        width: CANVAS_WIDTH,
+        height: groundHeight
     };
 
+    // HUD aktualisieren
+    function updateHUD() {
+        document.getElementById('score').textContent = score;
+        document.getElementById('lives').textContent = lives;
+    }
 
-    // **************************************************************************************
-    // SCHRITT 3: HINZUFÜGEN DER TOUCH-EVENTS & BUTTON-LISTENER
-    // **************************************************************************************
+    // ***************************************************************
+    // SCHRITT 2: SPIEL-LOGIK (UPDATE)
+    // ***************************************************************
 
-    document.addEventListener('DOMContentLoaded', () => {
-      // Zugriff auf die Buttons
-      const leftBtn = document.getElementById('left-btn');
-      const rightBtn = document.getElementById('right-btn');
-      const jumpBtn = document.getElementById('jump-btn');
-      const restartBtn = document.getElementById('restart');
-
-      // Funktion zum Starten der Bewegung (wird bei Touch-Start aufgerufen)
-      function handleTouchStart(controlVariable) {
-        if (window.keys && window.keys.hasOwnProperty(controlVariable)) {
-          window.keys[controlVariable] = true;
+    function handleInput() {
+        // Horizontale Bewegung
+        if (window.keys.left) {
+            player.xSpeed = -player.maxSpeed;
+        } else if (window.keys.right) {
+            player.xSpeed = player.maxSpeed;
+        } else {
+            // Reibung / Verlangsamen
+            player.xSpeed *= 0.8; 
+            if (Math.abs(player.xSpeed) < 0.5) player.xSpeed = 0;
         }
-      }
 
-      // Funktion zum Stoppen der Bewegung (wird bei Touch-Ende aufgerufen)
-      function handleTouchEnd(controlVariable) {
-        if (window.keys && window.keys.hasOwnProperty(controlVariable)) {
-          window.keys[controlVariable] = false;
+        // Sprung
+        // WICHTIG: Setzt window.keys.up im nächsten Frame wieder auf false, 
+        // damit der Spieler nur einmal springt.
+        if (window.keys.up && player.isGrounded) {
+            player.ySpeed = JUMP_POWER; 
+            player.isGrounded = false;
         }
-      }
-
-      // --------------------------------------------------------------------------------------
-      // A. EVENT LISTENER FÜR DEN NEU STARTEN BUTTON (Neu hinzugefügt)
-      // --------------------------------------------------------------------------------------
-      restartBtn.addEventListener('click', window.restartGame);
-
-
-      // --------------------------------------------------------------------------------------
-      // B. EVENT LISTENER FÜR DIE SEITLICHE BEWEGUNG (Links/Rechts)
-      // --------------------------------------------------------------------------------------
-      
-      // Button Links (◀)
-      leftBtn.addEventListener('pointerdown', () => handleTouchStart('left'));
-      leftBtn.addEventListener('pointerup', () => handleTouchEnd('left'));
-      leftBtn.addEventListener('pointerleave', () => handleTouchEnd('left'));
-
-      // Button Rechts (▶)
-      rightBtn.addEventListener('pointerdown', () => handleTouchStart('right'));
-      rightBtn.addEventListener('pointerup', () => handleTouchEnd('right'));
-      rightBtn.addEventListener('pointerleave', () => handleTouchEnd('right'));
-
-
-      // --------------------------------------------------------------------------------------
-      // C. EVENT LISTENER FÜR DEN SPRUNG-BUTTON (↑)
-      // --------------------------------------------------------------------------------------
-      jumpBtn.addEventListener('pointerdown', () => {
-        // Setzt die Sprung-Variable kurz auf true, um einen Tastendruck zu simulieren
-        if (window.keys) {
-          window.keys.up = true;
-          // Setzt die Variable kurz danach wieder auf false, um Dauersprung zu vermeiden
-          setTimeout(() => { window.keys.up = false; }, 50); 
+        // Schlüssel sofort zurücksetzen, damit der Sprung-Tipp-Impuls funktioniert
+        if (window.keys.up && !player.isGrounded) {
+             window.keys.up = false; 
         }
-      });
-      
-      // Verhindert das Standardverhalten des Browsers (z.B. Scrollen) beim Tippen auf die Steuerung
-      const controlsDiv = document.getElementById('touch-controls');
-      controlsDiv.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
-      controlsDiv.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+    }
 
+    function applyGravity() {
+        if (!player.isGrounded) {
+            player.ySpeed += GRAVITY;
+        }
+        player.y += player.ySpeed;
+        player.x += player.xSpeed;
+    }
+
+    function checkCollision() {
+        // Kollision mit dem Boden
+        const playerBottom = player.y + player.height;
+        const groundTop = ground.y;
+
+        if (playerBottom >= groundTop) {
+            player.y = groundTop - player.height; 
+            player.ySpeed = 0; 
+            player.isGrounded = true;
+        }
+    }
+
+    function update() {
+        if (!gameRunning) return;
+
+        handleInput();
+        applyGravity();
+        checkCollision();
+        
+        // Spieler an den horizontalen Rändern halten
+        if (player.x < 0) player.x = 0;
+        if (player.x + player.width > CANVAS_WIDTH) player.x = CANVAS_WIDTH - player.width;
+    }
+
+    // ***************************************************************
+    // SCHRITT 3: ZEICHNEN (DRAW)
+    // ***************************************************************
+
+    function drawGround() {
+        ctx.fillStyle = 'var(--ground)'; 
+        ctx.fillRect(ground.x, ground.y, ground.width, ground.height);
+    }
+
+    function drawPlayer() {
+        // Zeichne Mario (ein gelber Block)
+        ctx.fillStyle = 'var(--player)'; 
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+        
+        // Kleiner Hut-Simulations-Punkt (Rot)
+        ctx.fillStyle = 'red';
+        ctx.fillRect(player.x + player.width / 4, player.y - 3, player.width / 2, 5);
+    }
+
+    function draw() {
+        // 1. Canvas löschen
+        ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        
+        // 2. Elemente zeichnen
+        drawGround();
+        drawPlayer();
+    }
+
+    // Haupt-Spielschleife
+    function gameLoop() {
+        if (gameRunning) {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+    }
+
+    // ***************************************************************
+    // SCHRITT 4: GAME-CONTROLS UND FUNKTIONEN
+    // ***************************************************************
+
+    function startGame() {
+        if (gameRunning) return;
+        gameRunning = true;
+        updateHUD();
+        gameLoop();
+    }
+
+    /**
+     * Setzt das Spiel zurück. FUNKTION FÜR DEN NEUSTART-BUTTON!
+     */
+    window.restartGame = function() {
+        score = 0;
+        lives = 3;
+        
+        // Spieler auf Startposition zurücksetzen
+        player.x = 50;
+        player.y = CANVAS_HEIGHT - 60;
+        player.xSpeed = 0;
+        player.ySpeed = 0;
+        player.isGrounded = false;
+        
+        gameRunning = false; // Stoppt den alten Loop
+        
+        // Tasten-Status zurücksetzen
+        window.keys.left = false;
+        window.keys.right = false;
+        window.keys.up = false;
+        
+        updateHUD();
+        startGame(); // Startet den neuen Loop
+    };
+
+    // ***************************************************************
+    // SCHRITT 5: EVENT LISTENER (Tastatur und Touch)
+    // ***************************************************************
+
+    // Tastatur-Events (PC)
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') window.keys.left = true;
+        if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') window.keys.right = true;
+        if (e.key === ' ' || e.key.toLowerCase() === 'w') window.keys.up = true; 
     });
 
-  </script>
+    document.addEventListener('keyup', (e) => {
+        if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') window.keys.left = false;
+        if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') window.keys.right = false;
+    });
+
+
+    // DOM-Lade-Events (Buttons und Touch)
+    document.addEventListener('DOMContentLoaded', () => {
+        const restartBtn = document.getElementById('restart');
+        const fullscreenBtn = document.getElementById('fullscreen');
+        const leftBtn = document.getElementById('left-btn');
+        const rightBtn = document.getElementById('right-btn');
+        const jumpBtn = document.getElementById('jump-btn');
+
+        // Neustart Button
+        restartBtn.addEventListener('click', window.restartGame);
+
+        // Touch-Funktionen
+        function handleTouchStart(controlVariable) {
+            window.keys[controlVariable] = true;
+        }
+
+        function handleTouchEnd(controlVariable) {
+            window.keys[controlVariable] = false;
+        }
+        
+        // Touch-Listener für Bewegung
+        leftBtn.addEventListener('pointerdown', () => handleTouchStart('left'));
+        leftBtn.addEventListener('pointerup', () => handleTouchEnd('left'));
+        leftBtn.addEventListener('pointerleave', () => handleTouchEnd('left'));
+
+        rightBtn.addEventListener('pointerdown', () => handleTouchStart('right'));
+        rightBtn.addEventListener('pointerup', () => handleTouchEnd('right'));
+        rightBtn.addEventListener('pointerleave', () => handleTouchEnd('right'));
+        
+        // Touch-Listener für Sprung (wichtig: up muss schnell wieder auf false gesetzt werden)
+        jumpBtn.addEventListener('pointerdown', () => {
+            handleTouchStart('up');
+            // Optimierung: Setzt den Key kurz zurück, um einen schnellen Sprung-Impuls zu gewährleisten
+            setTimeout(() => handleTouchEnd('up'), 100); 
+        });
+        // Auch pointerup/leave verlinken, falls der Nutzer länger drückt
+        jumpBtn.addEventListener('pointerup', () => handleTouchEnd('up'));
+        jumpBtn.addEventListener('pointerleave', () => handleTouchEnd('up'));
+        
+        // Verhindert das Standardverhalten des Browsers
+        const controlsDiv = document.getElementById('touch-controls');
+        controlsDiv.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+
+
+        // Vollbild-Funktion
+        fullscreenBtn.addEventListener('click', () => {
+             if (canvas.requestFullscreen) {
+                canvas.requestFullscreen();
+            }
+        });
+
+        // Spiel starten!
+        startGame();
+    });
+</script>
 </body>
 </html>
