@@ -11,10 +11,10 @@
             --jet-cockpit-color: #ADD8E6;
             --jet-flame-color-1: #FFA500;
             --jet-flame-color-2: #FFD700;
-            --star-color-1: #FFFF00;        /* NEU: Gelb */
+            --star-color-1: #FFFF00;        /* Gelb */
             --star-color-2: #FFD700;
             --star-color-3: #FFC000;
-            --bomb-color: #FF0000;          /* NEU: Rot für Box-Bombe */
+            --bomb-color: #FF0000;          /* Rot für Box-Bombe */
             --joystick-red: #d9534f;
             --hud-color: #00FF00;        
             --cockpit-color: #0d1a26;    
@@ -234,16 +234,18 @@
     const SCORE_PER_STAR = 10;      
     const MAX_SCORE = 1000;
     
-    // NEU: Geschwindigkeitskontrolle
-    const ACCELERATION_START_TIME = 60000; // 60 Sekunden (1 Minute)
-    const SPEED_MULTIPLIER = 1.3;          // 30% schneller nach 1 Minute
+    // NEU: Geschwindigkeitskontrolle für faires Gameplay
+    const ACCEL_TIME_1 = 120000; // 2 Minuten
+    const ACCEL_MULTIPLIER_1 = 1.20; // 20% schneller
+    const ACCEL_TIME_2 = 180000; // 3 Minuten
+    const ACCEL_MULTIPLIER_2 = 1.35; // 35% schneller ab 3 Minuten
 
     // Spiel-Zustand
     let gameRunning = false;
     let score = 0;
     let missedCount = 0;
     let animationFrameId;
-    let startTime = 0; // NEU: Startzeitpunkt des Spiels
+    let startTime = 0; 
     let lastTime = 0; 
 
     // Jet-Parameter
@@ -263,7 +265,7 @@
 
     // Fallende Objekte Parameter
     const STAR_SIZE = 16;
-    const BOMB_SIZE = 20; // Quadratische Box-Bombe: Kante 20x20
+    const BOMB_SIZE = 20; 
     let objectSpawnTimer = 0;
     const BASE_SPAWN_RATE = 1.0; 
     const STAR_COLORS = ['var(--star-color-1)', 'var(--star-color-2)', 'var(--star-color-3)'];
@@ -296,7 +298,7 @@
         missedCount = 0;
         fallingObjects = [];
         objectSpawnTimer = 0;
-        startTime = 0; // Wichtig: Reset der Startzeit
+        startTime = 0; 
         
         resizeCanvas(); 
         
@@ -334,7 +336,6 @@
         statusEl.textContent = 'ACTIVE';
         statusEl.style.color = 'red';
         
-        // NEU: Setze Startzeit beim Start/Fortsetzen
         if (startTime === 0) {
             startTime = performance.now();
         }
@@ -378,9 +379,9 @@
             fallingObjects.push({
                 x: objectX,
                 y: -size,
-                width: size, // Bomben haben width/height
+                width: size,
                 height: size,
-                radius: type === 'star' ? size : size / 2, // Radius für Stern, Box-Bombe nutzt halbe Kante für die Kollision
+                radius: type === 'star' ? size : size / 2, 
                 speed: baseSpeed + (score * 5), 
                 type: type,
                 color: type === 'star' ? STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)] : 'var(--bomb-color)',
@@ -390,7 +391,6 @@
         }
     }
     
-    // NEU: Kollisionsfunktion für Rechteck (Jet) und Rechteck (Box-Bombe) oder Rechteck (Jet) und Kreis (Stern)
     function isColliding(rect1, obj2) {
         if (obj2.type === 'star') {
             // Kollision Rechteck (Jet) und Kreis (Stern)
@@ -422,11 +422,14 @@
     function update(deltaTime) {
         if (!gameRunning) return;
         
-        // NEU: Berechne Spielzeit und Multiplikator
+        // NEU: Logik zur Geschwindigkeitssteuerung
         const elapsedTime = performance.now() - startTime;
         let speedMultiplier = 1.0;
-        if (elapsedTime >= ACCELERATION_START_TIME) {
-            speedMultiplier = SPEED_MULTIPLIER;
+        
+        if (elapsedTime >= ACCEL_TIME_2) {
+            speedMultiplier = ACCEL_MULTIPLIER_2; // 35% schneller nach 3 min
+        } else if (elapsedTime >= ACCEL_TIME_1) {
+            speedMultiplier = ACCEL_MULTIPLIER_1; // 20% schneller nach 2 min
         }
 
         spawnObject(deltaTime);
@@ -441,7 +444,7 @@
         for (let i = fallingObjects.length - 1; i >= 0; i--) {
             const obj = fallingObjects[i];
             
-            // NEU: Anwenden des Zeit-Multiplikators auf die Fallgeschwindigkeit
+            // Anwenden des Zeit-Multiplikators auf die Fallgeschwindigkeit
             obj.y += obj.speed * speedMultiplier * (deltaTime / 1000);
 
             // Kollisionsprüfung mit dem Jet-Rechteck
@@ -459,7 +462,7 @@
                 
                 fallingObjects.splice(i, 1); 
             } 
-            // Verpasst-Prüfung. Hier wird die Größe (width/height) als Verlass-Punkt genutzt.
+            // Verpasst-Prüfung
             else if (obj.y - (obj.type === 'star' ? obj.radius : obj.height / 2) > canvas.height) { 
                 missedCount++;
                 fallingObjects.splice(i, 1); 
@@ -510,7 +513,7 @@
     }
 
     function drawBomb(obj) {
-        // NEU: Bombe als Rechteck/Box zeichnen.
+        // Bombe als Rechteck/Box zeichnen.
         const halfSize = obj.width / 2;
         
         ctx.fillStyle = obj.color;
@@ -762,7 +765,7 @@
         stopButton.onclick = stopGame;
         
         // Zeige Startanweisung
-        showEndMessage('Willkommen, Pilot!', `Sammle Sterne (10 Punkte) und vermeide die roten Boxen. Du hast max. ${MAX_MISSED} Fehlschläge. Max. Score: ${MAX_SCORE}.`, 'STARTEN');
+        showEndMessage('Willkommen, Pilot!', `Sammle gelbe Sterne (10 Punkte) und vermeide die roten Boxen. Du hast max. ${MAX_MISSED} Fehlschläge. Max. Score: ${MAX_SCORE}. Das Spiel wird nach 2 Minuten moderat schneller.`, 'STARTEN');
     });
 </script>
 
