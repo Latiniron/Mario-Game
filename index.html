@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Mario Galaxy Adventure - Final Edition</title>
-  <meta property="og:title" content="Mario Galaxy Adventure">
-  <meta property="og:description" content="Ein 10-Level Mario-inspiriertes Browser-Spiel mit Touch-Steuerung.">
+  <title>Jet Buster Challenge</title>
   <style>
     /* Allgemeine Stile */
     :root {
-      --player-color: #d9534f; /* Mario's Rot */
-      --block-color: #c77f3a;
-      --hazard-color: #ff0000; /* Gefahren-Rot */
-      --star-color: #ffd700;
+      --jet-color: #00BFFF; /* Himmelblau für den Jet */
+      --ball-color-1: #d9534f; /* Rot */
+      --ball-color-2: #f0ad4e; /* Orange */
+      --ball-color-3: #5cb85c; /* Grün */
       --text-color: #ffffff;
       --hud-bg: rgba(0, 0, 0, 0.7);
+      --joystick-red: #d9534f; /* Roter Joystick */
+      --dpad-grey: #6c757d;   /* Grau für D-Pad */
     }
     html, body {
       height: 100%;
@@ -22,25 +22,28 @@
       font-family: 'Press Start 2P', monospace;
       background: #222;
       overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column; /* Für konsolenähnliches Layout */
     }
     #gameWrap {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 0;
       position: relative;
-      height: 100vh;
+      width: 100%;
+      max-width: 800px;
+      height: 100%; /* Passt sich an verfügbaren Platz an */
+      flex-grow: 1; /* Nimmt verfügbaren Platz ein */
     }
-    /* Canvas und Pixel-Rendering */
+    /* Canvas */
     canvas {
       border: 3px solid #333;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
       image-rendering: pixelated; 
       width: 100%; 
-      max-width: 800px; 
-      height: 100%;
-      max-height: 450px;
-      touch-action: none; 
+      flex-grow: 1; /* Canvas nimmt den größten Teil des Platzes ein */
       background-color: #78c0ff;
       flex-shrink: 0;
     }
@@ -57,31 +60,12 @@
       background: var(--hud-bg);
       color: var(--text-color);
       font-size: 10px;
-      border-bottom: 3px solid #333;
+      border-top: 3px solid #333; /* Oben statt unten */
     }
     #info-left, #info-right {
       display: flex;
       gap: 15px;
     }
-    .life-info {
-        display: flex;
-        align-items: center;
-    }
-    .life-bar-wrap {
-      width: 80px; /* Etwas kleiner für besseren Platz */
-      height: 10px;
-      background: #444;
-      border: 1px solid white;
-      margin-left: 5px;
-      box-sizing: border-box;
-    }
-    .life-bar {
-      height: 100%;
-      transition: width 0.3s;
-    }
-    #mario-life-bar { background: #5cb85c; }
-    #boss-life-bar { background: #d9534f; }
-    #boss-life-wrap { display: none; } /* Standardmäßig versteckt */
 
     /* Game-Over/Pause Overlay */
     #overlay {
@@ -100,66 +84,126 @@
         font-size: 18px;
         z-index: 200;
         display: none;
-        max-width: 800px;
-        max-height: 450px;
     }
     #overlay h2 { margin-bottom: 15px; font-size: 24px; }
-    #overlay button {
+    #overlay p { margin-bottom: 20px; font-size: 14px; }
+    #overlay button, #difficulty-select button {
         padding: 10px 20px;
-        font-size: 16px;
+        font-size: 14px;
         cursor: pointer;
-        background: var(--player-color);
+        background: var(--jet-color);
         color: white;
         border: 2px solid white;
-        margin-top: 10px;
+        margin: 5px;
         font-family: inherit;
     }
-
-    /* Virtuelle Touch-Buttons (Handy) */
-    #touch-controls {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      display: none; 
-      padding: 10px;
-      box-sizing: border-box;
-      z-index: 100;
-      justify-content: space-between;
-      pointer-events: none;
-    }
-    @media (max-width: 600px) {
-      #touch-controls {
+    #difficulty-select {
         display: flex;
-      }
+        gap: 10px;
+        margin-top: 15px;
     }
-    .touch-btn {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      user-select: none;
-      pointer-events: auto;
-      touch-action: manipulation; 
-      border: 2px solid rgba(255, 255, 255, 0.8);
-      opacity: 0.8;
-      font-family: inherit;
+
+    /* Konsolen-Controller Bereich */
+    #controller-area {
+        width: 100%;
+        max-width: 800px;
+        height: 150px; /* Feste Höhe für den Controller-Bereich */
+        background: #333;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        box-sizing: border-box;
+        border-top: 3px solid #111;
+        box-shadow: inset 0 5px 10px rgba(0,0,0,0.5);
     }
-    .touch-btn:active {
-      opacity: 1.0;
-      background: rgba(0, 0, 0, 0.9);
+
+    /* Joystick-Stile (links) */
+    #joystick-area {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /* Debug-Border */
+        /* border: 1px solid white; */
     }
-    #move-btns {
-      display: flex;
-      gap: 10px;
-      margin-left: 10px;
+    #joystick-base {
+        width: 100px;
+        height: 100px;
+        background: #444;
+        border-radius: 50%;
+        border: 2px solid #555;
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
     }
+    #joystick-handle {
+        width: 60px;
+        height: 60px;
+        background: var(--joystick-red);
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 3px 5px rgba(0,0,0,0.5);
+        cursor: grab;
+        touch-action: none; /* Wichtig für Touch-Drag */
+        border: 2px solid #a00;
+    }
+
+    /* D-Pad Stile (rechts) */
+    #dpad-area {
+        width: 120px;
+        height: 120px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 1px;
+        background: #444; /* Hintergrund für das Kreuz */
+        border-radius: 5px;
+        overflow: hidden; /* Für saubere Kanten */
+    }
+    .dpad-btn {
+        background: var(--dpad-grey);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 10px;
+        cursor: pointer;
+        user-select: none;
+        touch-action: manipulation;
+        border: 1px solid #555;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+    }
+    .dpad-btn:active {
+        background: #888;
+        box-shadow: inset 0 0 3px rgba(0,0,0,0.5);
+    }
+    /* Platzhalter für die Mitte */
+    #dpad-center {
+        background: #555;
+        border: none;
+    }
+    /* Pfeile für D-Pad */
+    .dpad-btn::before {
+        content: '';
+        display: block;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-color: transparent;
+        border-width: 8px 8px 8px 8px;
+    }
+    #dpad-up::before { border-bottom-color: white; transform: translateY(2px); }
+    #dpad-down::before { border-top-color: white; transform: translateY(-2px); }
+    #dpad-left::before { border-right-color: white; transform: translateX(2px); }
+    #dpad-right::before { border-left-color: white; transform: translateX(-2px); }
 
     /* Lade-Schriftart */
     @font-face {
@@ -173,9 +217,14 @@
 <body>
   <div id="gameWrap">
     <div id="overlay">
-        <h2 id="overlay-title">SPIEL PAUSIERT</h2>
-        <p id="overlay-text">Drücke 'P' oder tippe, um fortzufahren.</p>
-        <button id="overlay-button">Weiter/Neu starten</button>
+        <h2 id="overlay-title">JET BUSTER</h2>
+        <p id="overlay-text">Wähle eine Schwierigkeit, um zu starten.</p>
+        <div id="difficulty-select">
+            <button onclick="startGame(1)">LEICHT</button>
+            <button onclick="startGame(2)">MITTEL</button>
+            <button onclick="startGame(3)">SCHWER</button>
+        </div>
+        <button id="overlay-button" style="display:none;" onclick="window.restartGame()">Neu starten</button>
     </div>
 
     <canvas id="game" width="800" height="450"></canvas>
@@ -183,34 +232,33 @@
     <div id="hud">
       <div id="info-left">
         <span>LVL: <span id="level">1</span></span>
-        <span>ZEIT: <span id="time">180</span>s</span>
+        <span>SCHW: <span id="difficulty">Mittel</span></span>
       </div>
       <div id="info-right">
-        <span>PUNKTE: <span id="score">0</span></span>
-        <div class="life-info">
-            <span id="mario-life-text">100%</span>
-            <div class="life-bar-wrap">
-                <div id="mario-life-bar" class="life-bar"></div>
-            </div>
-        </div>
-        <div id="boss-life-wrap" class="life-info">
-            <span>BOSS: </span>
-            <span id="boss-life-text">100%</span>
-            <div class="life-bar-wrap">
-                <div id="boss-life-bar" class="life-bar"></div>
-            </div>
-        </div>
+        <span>ZEIT: <span id="time">120</span>s</span>
+        <span>PUNKTE: <span id="score">0</span> / 100</span>
       </div>
     </div>
   </div>
 
-  <div id="touch-controls">
-    <div id="move-btns">
-      <div id="left-btn" class="touch-btn">F</div> 
-      <div id="right-btn" class="touch-btn">G</div> 
+  <div id="controller-area">
+    <div id="joystick-area">
+        <div id="joystick-base"></div>
+        <div id="joystick-handle"></div>
     </div>
-    <div id="right-btns">
-        <div id="shoot-btn" class="touch-btn" style="display:none;">U</div> <div id="jump-btn" class="touch-btn">SPRUNG</div> 
+
+    <div id="dpad-area">
+        <div class="dpad-btn" id="dpad-up" data-key="up"></div>
+        <div class="dpad-btn" id="dpad-center"></div>
+        <div class="dpad-btn" id="dpad-up-right" data-key="up-right"></div>
+        
+        <div class="dpad-btn" id="dpad-left" data-key="left"></div>
+        <div class="dpad-btn" id="dpad-down-center"></div>
+        <div class="dpad-btn" id="dpad-right" data-key="right"></div>
+        
+        <div class="dpad-btn" id="dpad-down-left" data-key="down-left"></div>
+        <div class="dpad-btn" id="dpad-center-down"></div>
+        <div class="dpad-btn" id="dpad-down" data-key="down"></div>
     </div>
   </div>
 
@@ -221,244 +269,162 @@
 
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
+    // Setze eine fixe Canvas-Größe für konsistentes Verhalten
     const CANVAS_WIDTH = 800;
     const CANVAS_HEIGHT = 450;
+    canvas.width = CANVAS_WIDTH;
+    canvas.height = CANVAS_HEIGHT;
     
     // Spiel-Zustand
     let gameRunning = false;
-    let gamePaused = false;
     let currentLevel = 1;
     let score = 0;
-    let playerLife = 100;
-    let timeLeft = 180; // 3 Minuten
+    let timeLeft = 120; // 2 Minuten Spielzeit
+    let difficultyMultiplier = 1; // 1=Leicht, 2=Mittel, 3=Schwer
     let lastTime = 0;
     let animationFrameId;
 
-    // Physik-Konstanten
-    const GRAVITY = 0.9; 
-    const JUMP_POWER = -16; 
-    const HORIZONTAL_SPEED = 6;
-    const MOON_GRAVITY = 0.3; // Level 10
-    const MOON_JUMP_POWER = -10; 
+    // Jet-Parameter
+    const JET_SPEED = 5; // Basis-Geschwindigkeit des Jets
+    const JET_WIDTH = 50;
+    const JET_HEIGHT = 30;
 
-    // Spieler-Objekt (Mario)
+    // Spieler-Objekt (Jet)
     let player = {
-        x: 50,
-        y: CANVAS_HEIGHT - 60, 
-        width: 20,
-        height: 30,
+        x: CANVAS_WIDTH / 2 - JET_WIDTH / 2,
+        y: CANVAS_HEIGHT / 2 - JET_HEIGHT / 2, 
+        width: JET_WIDTH,
+        height: JET_HEIGHT,
         xSpeed: 0,
         ySpeed: 0, 
-        maxSpeed: HORIZONTAL_SPEED,
-        isGrounded: false,
-        hitCooldown: 0, // Zähler für Unverwundbarkeit nach Treffer
     };
 
-    // Godzilla Boss-Objekt (Level 10)
-    let boss = null;
-    let plasmaShots = [];
-    let fireballs = [];
-    let shootCooldown = 0;
+    // Kugel-Parameter
+    const BALL_RADIUS = 10;
+    let ballSpawnTimer = 0;
+    let ballSpawnRate = 60; // Alle 60 Frames (1s bei 60 FPS)
 
-    // Steuerung
+    // Spiel-Objekte
+    let balls = []; // Array für die fallenden Kugeln
+    
+    // Steuerung (für Tastatur und Touch-D-Pad)
     window.keys = { 
         left: false, 
         right: false, 
-        up: false,
-        showScore: false, // T
-        pause: false, // P
-        shoot: false, // U
+        up: false, // Für D-Pad auf/ab
+        down: false,
     }; 
-    let keyPressHandled = { T: false, P: false, Shoot: false };
+    
+    // Joystick-Steuerung
+    let joystickActive = false;
+    let joystickStartX = 0;
+    let joystickStartY = 0;
+    let joystickOffsetX = 0; // Relative Position des Griffs zur Mitte
+    let joystickOffsetY = 0;
+    const JOYSTICK_MAX_DIST = 30; // Maximaler Bewegungsradius des Griffs
+    const JOYSTICK_SENSITIVITY = 0.1; // Wie stark Joystick-Ausschlag die Geschwindigkeit beeinflusst
 
     // HUD-Elemente
     const hudElements = {
         score: document.getElementById('score'),
         level: document.getElementById('level'),
         time: document.getElementById('time'),
-        marioLifeText: document.getElementById('mario-life-text'),
-        marioLifeBar: document.getElementById('mario-life-bar'),
-        bossLifeWrap: document.getElementById('boss-life-wrap'),
-        bossLifeText: document.getElementById('boss-life-text'),
-        bossLifeBar: document.getElementById('boss-life-bar'),
+        difficulty: document.getElementById('difficulty'),
         overlay: document.getElementById('overlay'),
         overlayTitle: document.getElementById('overlay-title'),
         overlayText: document.getElementById('overlay-text'),
         overlayButton: document.getElementById('overlay-button'),
-        shootBtn: document.getElementById('shoot-btn'),
+        difficultySelect: document.getElementById('difficulty-select'),
     };
     
-    // ***************************************************************
-    // LEVEL-DATEN & HINTERGRÜNDE
-    // ***************************************************************
-
-    const LEVEL_THEMES = [
-        { name: "Grüne Berge", ground: '#6b4f2f', background: 'linear-gradient(#78c0ff 0%, #a0e1ff 60%, #4CAF50 95%)', lightBlocks: true },
-        { name: "Schneechaos", ground: '#E0E0E0', background: 'linear-gradient(#ADD8E6 0%, #FFFFFF 60%)', lightBlocks: true },
-        { name: "Naturbrand", ground: '#795548', background: 'linear-gradient(#FF7043 0%, #E64A19 60%)', lightBlocks: false },
-        { name: "Zerstörte Stadt", ground: '#546E7A', background: 'linear-gradient(#B0BEC5 0%, #CFD8DC 60%)', lightBlocks: false },
-        { name: "Strand Sonnenuntergang", ground: '#FFEB3B', background: 'linear-gradient(#FF5722 0%, #FF9800 60%)', lightBlocks: true },
-        { name: "Japanische Gärten", ground: '#8BC34A', background: 'linear-gradient(#81D4FA 0%, #E0F7FA 60%)', lightBlocks: true },
+    // Level-Daten (Geschwindigkeit des Falls)
+    const LEVEL_DATA = [
+        { level: 1, speedFactor: 1.0 }, // Start
+        { level: 2, speedFactor: 1.2 }, 
+        { level: 3, speedFactor: 1.5 }, 
+        { level: 4, speedFactor: 1.8 }, 
+        { level: 5, speedFactor: 2.2 }, 
+        { level: 6, speedFactor: 2.7 }, 
+        { level: 7, speedFactor: 3.5 }, // Maximales Tempo
     ];
 
-    const LEVELS = [];
-    // Generiere 9 zufällige Level
-    for (let i = 1; i <= 9; i++) {
-        const theme = LEVEL_THEMES[Math.floor(Math.random() * LEVEL_THEMES.length)];
-        LEVELS[i] = {
-            name: theme.name,
-            ground: theme.ground,
-            background: theme.background,
-            blocks: 5 + i * 2, // Steigende Blockanzahl
-            stars: 2 + Math.floor(i / 3), // Steigende Stern-Anzahl
-            difficulty: 1 + i * 0.2, // Steigende Schwierigkeit
-            isMoon: false,
-            lightBlocks: theme.lightBlocks,
-        };
-    }
-
-    // Level 10: Mondlandung mit Boss
-    LEVELS[10] = { 
-        name: "Mondlandung (Boss)", 
-        ground: '#B0BEC5', 
-        background: 'linear-gradient(#000000 0%, #2C3E50 60%)', 
-        blocks: 15, // Weniger Blöcke, da Bosskampf
-        stars: 3, 
-        difficulty: 5.0, 
-        isMoon: true,
-        lightBlocks: true,
-    };
-
-    // Spiel-Objekte (Hindernisse, Sterne)
-    let obstacles = [];
-    let stars = [];
-
-    // ***************************************************************
-    // HILFSFUNKTIONEN & LEVEL-GENERATION
-    // ***************************************************************
-
     /**
-     * Erstellt ein Hindernis (Block oder Gefahrenzone).
+     * Startet das Spiel mit gewählter Schwierigkeit.
+     * @param {number} diff - 1, 2 oder 3
      */
-    function createObstacle(x, y, w, h, isHazard = false) {
-        return { 
-            x, y, width: w, height: h, 
-            type: 'block', 
-            isHazard: isHazard 
-        };
-    }
+    window.startGame = function(diff) {
+        difficultyMultiplier = diff;
+        currentLevel = 1;
+        score = 0;
+        timeLeft = 120;
+        balls = [];
+        ballSpawnTimer = 0;
 
-    /**
-     * Generiert die Welt für das aktuelle Level.
-     */
-    function generateLevel() {
-        const levelData = LEVELS[currentLevel];
-        obstacles = [];
-        stars = [];
-        boss = null;
-        plasmaShots = [];
-        fireballs = [];
+        // Schwierigkeitstext
+        const diffNames = ['LEICHT', 'MITTEL', 'SCHWER'];
+        hudElements.difficulty.textContent = diffNames[diff - 1];
         
-        // HUD für Boss vorbereiten
-        hudElements.bossLifeWrap.style.display = levelData.isMoon ? 'flex' : 'none';
-        hudElements.shootBtn.style.display = levelData.isMoon ? 'flex' : 'none';
-
-        // --- 1. Grundlinie ---
-        const groundHeight = 20;
-        const ground = {
-            x: 0, y: CANVAS_HEIGHT - groundHeight,
-            width: CANVAS_WIDTH, height: groundHeight,
-            type: 'ground', color: levelData.ground
-        };
-        obstacles.push(ground);
-        
-        // --- 2. Hindernisse generieren ---
-        let lastX = 100;
-        const totalBlocks = levelData.blocks;
-        const minGap = 50, maxGap = 150; 
-        
-        for (let i = 0; i < totalBlocks; i++) {
-            const blockW = Math.random() * 40 + 20;
-            const blockH = Math.random() * 60 + 20;
-            const blockX = lastX + Math.random() * (maxGap - minGap) + minGap;
-            const blockY = CANVAS_HEIGHT - groundHeight - blockH;
-
-            if (blockX + blockW > CANVAS_WIDTH - 20) break;
-
-            // Zufällige Gefahren-Blöcke (häufiger in höheren Leveln/bestimmten Themen)
-            const isHazard = currentLevel > 3 && Math.random() < 0.25; 
-            obstacles.push(createObstacle(blockX, blockY, blockW, blockH, isHazard));
-            lastX = blockX + blockW;
-        }
-
-        // --- 3. Sterne generieren (Zufällig & sicher platziert) ---
-        for (let i = 0; i < levelData.stars; i++) {
-            const starX = Math.random() * (CANVAS_WIDTH - 200) + 100;
-            const starY = Math.random() * (CANVAS_HEIGHT - groundHeight - 100) + 50;
-            stars.push({ x: starX, y: starY, width: 15, height: 15, type: 'star', collected: false });
-        }
-
-        // --- 4. Boss initialisieren (Level 10) ---
-        if (levelData.isMoon) {
-            boss = {
-                x: CANVAS_WIDTH - 150, // Startet rechts
-                y: CANVAS_HEIGHT - 150, // Steht auf dem Boden
-                width: 80,
-                height: 130, // Große Godzilla-Figur
-                life: 100,
-                maxLife: 100,
-                fireCooldown: 120, // 2 Sekunden
-                type: 'boss',
-                speed: 1.5, // Langsame Bewegung
-            };
-        }
-
-        // --- 5. Spieler auf Startposition ---
-        player.x = 50;
-        player.y = CANVAS_HEIGHT - 60;
+        // Spieler-Reset
+        player.x = CANVAS_WIDTH / 2 - JET_WIDTH / 2;
+        player.y = CANVAS_HEIGHT / 2 - JET_HEIGHT / 2;
         player.xSpeed = 0;
         player.ySpeed = 0;
-        player.isGrounded = false;
-        player.maxSpeed = HORIZONTAL_SPEED;
-        playerLife = 100; // Leben werden IMMER aufgefüllt beim Level-Start
+        
+        hideOverlay();
+        gameRunning = true;
+        lastTime = performance.now();
+        
+        // Start des Game Loops
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        animationFrameId = requestAnimationFrame(gameLoop);
+        
+        updateHUD();
+    };
 
-        canvas.style.background = levelData.background;
+    /**
+     * Erstellt eine neue fallende Kugel.
+     */
+    function spawnBall() {
+        const ballX = Math.random() * (CANVAS_WIDTH - BALL_RADIUS * 2) + BALL_RADIUS;
+        const speedFactor = LEVEL_DATA[currentLevel - 1].speedFactor;
+        
+        // Kugel-Geschwindigkeit basierend auf Level und Schwierigkeit
+        const baseSpeed = 1.5; // Basis-Geschwindigkeit für alle Bälle
+        const ySpeed = baseSpeed * speedFactor * difficultyMultiplier;
+        
+        // Zufällige Farbe
+        const colors = ['var(--ball-color-1)', 'var(--ball-color-2)', 'var(--ball-color-3)'];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        
+        balls.push({
+            x: ballX,
+            y: -BALL_RADIUS, // Start über dem Bildschirm
+            radius: BALL_RADIUS,
+            ySpeed: ySpeed,
+            color: color,
+            type: 'ball',
+            active: true
+        });
     }
 
     /**
      * Aktualisiert das HUD.
      */
     function updateHUD() {
-        hudElements.score.textContent = score;
+        hudElements.score.textContent = `${score} / 100`;
         hudElements.level.textContent = currentLevel;
         hudElements.time.textContent = Math.max(0, Math.floor(timeLeft));
-
-        // Mario Leben
-        const mLife = Math.max(0, playerLife);
-        hudElements.marioLifeText.textContent = `${mLife.toFixed(1)}%`;
-        hudElements.marioLifeBar.style.width = `${mLife}%`;
-
-        // Boss Leben (Level 10)
-        if (boss) {
-            const bLife = Math.max(0, boss.life);
-            hudElements.bossLifeText.textContent = `${bLife.toFixed(1)}%`;
-            hudElements.bossLifeBar.style.width = `${bLife}%`;
-        }
     }
 
     /**
-     * Bewegt zum nächsten Level.
+     * Bewegt zum nächsten Level (Erhöhung der Ball-Geschw.).
      */
     function nextLevel() {
-        if (currentLevel < LEVELS.length - 1) {
+        if (currentLevel < 7) {
             currentLevel++;
-            startGameLoop();
-            showOverlay(`LEVEL ${currentLevel} START`, `Ziel: ${LEVELS[currentLevel].name}!`, 'Start', () => {
-                 gamePaused = false;
-                 hideOverlay();
-            });
-        } else if (currentLevel === 10 && boss.life <= 0) {
-            gameOver(true); // Spiel gewonnen nach Boss-Sieg
+            
+            // Anpassung der Spawn-Rate (schnelleres Spawnen in höheren Leveln)
+            ballSpawnRate = Math.max(20, 60 - currentLevel * 5); 
         }
     }
 
@@ -467,182 +433,110 @@
     // ***************************************************************
     
     /**
-     * Mario schießt ein Plasma-Projektil (U).
+     * Verarbeitet die Spieler-Eingaben für Jet-Bewegung.
      */
-    function shootPlasma() {
-        if (shootCooldown > 0 || !LEVELS[currentLevel].isMoon) return;
-        
-        plasmaShots.push({
-            x: player.x + player.width / 2,
-            y: player.y + player.height / 2,
-            width: 10,
-            height: 5,
-            xSpeed: player.maxSpeed * 2,
-            color: '#00FFFF', // Cyan Plasma
-        });
-        
-        shootCooldown = 30; // Schuss-Verzögerung (0.5s)
+    function handleInput() {
+        // Joystick-Input für horizontale Bewegung
+        let targetXSpeed = joystickOffsetX * JOYSTICK_SENSITIVITY * JET_SPEED;
+        let targetYSpeed = joystickOffsetY * JOYSTICK_SENSITIVITY * JET_SPEED;
+
+        // Tastatur/D-Pad Input
+        if (window.keys.left) targetXSpeed = -JET_SPEED;
+        if (window.keys.right) targetXSpeed = JET_SPEED;
+        if (window.keys.up) targetYSpeed = -JET_SPEED;
+        if (window.keys.down) targetYSpeed = JET_SPEED;
+
+        // Wenn beide Tasten (Tastatur/D-Pad und Joystick) gedrückt werden, 
+        // priorisieren wir hier den Joystick für X, D-Pad für Y,
+        // oder Sie können eine Mischung/Addition machen.
+        // Für den Anfang: Wenn D-Pad gedrückt, überschreibt es den Joystick für diese Achse.
+        if (window.keys.left || window.keys.right) player.xSpeed = targetXSpeed;
+        else player.xSpeed = targetXSpeed;
+
+        if (window.keys.up || window.keys.down) player.ySpeed = targetYSpeed;
+        else player.ySpeed = targetYSpeed;
+
+        // Sanftere Beschleunigung/Abbremsung
+        player.xSpeed += (targetXSpeed - player.xSpeed) * 0.2; 
+        player.ySpeed += (targetYSpeed - player.ySpeed) * 0.2;
     }
 
-    function handleBossLogic() {
-        if (!boss) return;
+    /**
+     * Prüft die Kollision zwischen Spieler (Rechteck) und Kugel (Kreis).
+     * @param {Object} playerRect 
+     * @param {Object} ballCircle 
+     * @returns {boolean}
+     */
+    function isCollidingRectCircle(rect, circle) {
+        // Findet den nächsten Punkt auf dem Rechteck zum Kreismittelpunkt
+        const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
+        const closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
 
-        // 1. Bewegung: Langsam auf Mario zubewegen
-        const dx = player.x - boss.x;
-        if (Math.abs(dx) > 100) { // Nur bewegen, wenn Mario weit genug entfernt ist
-             boss.x += Math.sign(dx) * boss.speed * 0.5;
-        }
+        // Berechnet den Abstand
+        const distX = circle.x - closestX;
+        const distY = circle.y - closestY;
 
-        // 2. Feuerball-Angriff
-        boss.fireCooldown--;
-        if (boss.fireCooldown <= 0) {
-            fireballs.push({
-                x: boss.x - 10, // Kommt aus dem Mund
-                y: boss.y + boss.height * 0.4,
-                width: 15,
-                height: 15,
-                xSpeed: -5,
-                color: 'orange',
-            });
-            boss.fireCooldown = 60 + Math.random() * 60; // 1-2 Sekunden
-        }
-    }
-
-    function updateProjectiles() {
-        // Plasma-Schüsse (Mario -> Boss)
-        for (let i = plasmaShots.length - 1; i >= 0; i--) {
-            const shot = plasmaShots[i];
-            shot.x += shot.xSpeed;
-
-            if (boss && isColliding(shot, boss)) {
-                boss.life -= 5; // 5% Schaden pro Schuss
-                score += 50;
-                plasmaShots.splice(i, 1);
-                
-                if (boss.life <= 0) {
-                    gameOver(true); // Boss besiegt
-                    return;
-                }
-            } else if (shot.x > CANVAS_WIDTH) {
-                plasmaShots.splice(i, 1);
-            }
-        }
-
-        // Feuerbälle (Boss -> Mario)
-        for (let i = fireballs.length - 1; i >= 0; i--) {
-            const ball = fireballs[i];
-            ball.x += ball.xSpeed;
-
-            if (isColliding(ball, player)) {
-                if (player.hitCooldown <= 0) {
-                    playerLife -= 1; // 1% Schaden
-                    player.hitCooldown = 60;
-                }
-                fireballs.splice(i, 1);
-            } else if (ball.x < 0) {
-                fireballs.splice(i, 1);
-            }
-        }
-    }
-
-
-    function checkCollision() {
-        player.isGrounded = false;
-        const currentLevelData = LEVELS[currentLevel];
-        const playerOldBottom = player.y - player.ySpeed + player.height;
-        
-        // Kollision mit Hindernissen und Boden
-        for (const obs of obstacles) {
-            if (isColliding(player, obs)) {
-                if (obs.type === 'ground') {
-                    player.y = obs.y - player.height; 
-                    player.ySpeed = 0; 
-                    player.isGrounded = true;
-                } else if (obs.type === 'block') {
-                    // Kollision von oben (Landung auf Block)
-                    if (playerOldBottom <= obs.y) {
-                        player.y = obs.y - player.height;
-                        player.ySpeed = 0;
-                        player.isGrounded = true;
-                    } 
-                    // Treffer von der Seite/unten
-                    else {
-                        // LEBENSABZUG NUR BEI GEFAHR-HINDERNISSEN
-                        if (obs.isHazard && player.hitCooldown <= 0) {
-                            playerLife -= 0.05 * currentLevelData.difficulty; // 0.05% Abzug
-                            player.hitCooldown = 30; // Kurzer Cooldown (0.5s)
-                        }
-                        
-                        // Zurücksetzen aus der Kollision
-                        if (player.xSpeed > 0) player.x = obs.x - player.width;
-                        else if (player.xSpeed < 0) player.x = obs.x + obs.width;
-                    }
-                }
-            }
-        }
-        
-        // Kollision mit Sternen (Zeit/Leben Bonus)
-        for (let i = stars.length - 1; i >= 0; i--) {
-            const star = stars[i];
-            if (!star.collected && isColliding(player, star)) {
-                star.collected = true;
-                score += 10;
-                timeLeft += 10; // 10s Bonus
-                playerLife = Math.min(100, playerLife + 1); // 1% Leben Bonus
-                stars.splice(i, 1);
-            }
-        }
-
-        // Kollision mit Boss (Level 10)
-        if (boss && isColliding(player, boss)) {
-             if (player.hitCooldown <= 0) {
-                playerLife -= 1; // 1% Schaden bei Kontakt
-                player.hitCooldown = 60;
-            }
-        }
-
-        // Hit-Cooldown reduzieren
-        if (player.hitCooldown > 0) {
-            player.hitCooldown--;
-        }
-
-        // Ende des Levels erreicht (nur Level 1-9)
-        if (currentLevel < 10 && player.x + player.width > CANVAS_WIDTH - 10) {
-            nextLevel();
-        }
+        // Wenn der Abstand kleiner ist als der Radius, kollidieren sie
+        return (distX * distX + distY * distY) < (circle.radius * circle.radius);
     }
     
     function update(deltaTime) {
-        if (!gameRunning || gamePaused) return;
+        if (!gameRunning) return;
 
+        // 1. Zeit-Update und Level-Check
         timeLeft -= deltaTime / 1000;
-        if (playerLife <= 0 || timeLeft <= 0) {
-            gameOver(false);
+        
+        // Level-Wechsel alle 15 Sekunden (120s / 7 Level = ca. 17s pro Level)
+        if (currentLevel < 7 && timeLeft > 0 && Math.floor(timeLeft) % 15 === 0 && Math.floor(timeLeft) !== Math.floor(timeLeft + (deltaTime / 1000))) { 
+             nextLevel();
+        }
+        
+        if (timeLeft <= 0) {
+            gameOver(true); // Spielende durch Zeit
             return;
         }
 
-        // Input und Physik
+        // 2. Spieler-Bewegung (Jet)
         handleInput();
         
-        const gravity = LEVELS[currentLevel].isMoon ? MOON_GRAVITY : GRAVITY;
-        const jumpPower = LEVELS[currentLevel].isMoon ? MOON_JUMP_POWER : JUMP_POWER;
-        
-        if (!player.isGrounded) player.ySpeed += gravity;
-        player.y += player.ySpeed;
         player.x += player.xSpeed;
+        player.y += player.ySpeed;
         
-        // Cooldowns
-        if (shootCooldown > 0) shootCooldown--;
-
-        // Spezifische Logik
-        handleBossLogic();
-        updateProjectiles();
-
-        // Kollisionen
-        checkCollision();
-        
-        // Randbegrenzung (Horizontal)
+        // Randbegrenzung des Jets (Jet darf den Bildschirm nicht verlassen)
         if (player.x < 0) player.x = 0;
+        if (player.x + player.width > CANVAS_WIDTH) player.x = CANVAS_WIDTH - player.width;
+        if (player.y < 0) player.y = 0;
+        if (player.y + player.height > CANVAS_HEIGHT) player.y = CANVAS_HEIGHT - player.height;
+        
+        // 3. Kugel-Logik
+        ballSpawnTimer++;
+        if (ballSpawnTimer >= ballSpawnRate) {
+            spawnBall();
+            ballSpawnTimer = 0;
+        }
+
+        // Kugel-Bewegung und Kollision
+        for (let i = balls.length - 1; i >= 0; i--) {
+            const ball = balls[i];
+            
+            ball.y += ball.ySpeed;
+
+            // Kollision mit Spieler (Jet fängt Kugel ein)
+            if (isCollidingRectCircle(player, { x: ball.x, y: ball.y, radius: ball.radius })) {
+                score++;
+                balls.splice(i, 1); // Kugel platzen lassen
+                
+                if (score >= 100) {
+                     gameOver(true); // Spielende durch Ziel-Score
+                     return;
+                }
+            } 
+            // Boden-Kollision (Game Over)
+            else if (ball.y + ball.radius > CANVAS_HEIGHT) { // Kugel berührt unteren Rand
+                gameOver(false); // Spielende durch Berührung des Bodens
+                return;
+            }
+        }
         
         updateHUD();
     }
@@ -651,202 +545,238 @@
     // ZEICHNEN (DRAW)
     // ***************************************************************
 
-    function drawPixelRect(x, y, w, h, color) {
+    function drawRect(x, y, w, h, color) {
         ctx.fillStyle = color;
         ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
     }
 
-    function drawWorld() {
-        const levelData = LEVELS[currentLevel];
-        
-        // Grund
-        const groundObj = obstacles.find(o => o.type === 'ground');
-        if (groundObj) drawPixelRect(groundObj.x, groundObj.y, groundObj.width, groundObj.height, groundObj.color);
-
-        // Hindernisse
-        for (const obs of obstacles) {
-            if (obs.type === 'block') {
-                const color = obs.isHazard ? 'var(--hazard-color)' : (levelData.lightBlocks ? '#c77f3a' : '#8B4513');
-                drawPixelRect(obs.x, obs.y, obs.width, obs.height, color);
-            }
-        }
-        
-        // Sterne
-        for (const star of stars) {
-            if (!star.collected) drawPixelRect(star.x, star.y, star.width, star.height, 'var(--star-color)');
-        }
+    function drawBall(ball) {
+        ctx.fillStyle = ball.color;
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+        ctx.fill();
     }
 
-    function drawPlayer() {
-        if (player.hitCooldown > 0 && Math.floor(player.hitCooldown / 5) % 2 === 0) return; 
+    function drawJet() {
+        // Einfache Jet-Form
+        ctx.fillStyle = 'var(--jet-color)';
+        // Hauptkörper
+        drawRect(player.x, player.y + player.height * 0.1, player.width, player.height * 0.8, 'var(--jet-color)');
+        // Flügel (Dreiecke)
+        ctx.beginPath();
+        ctx.moveTo(player.x - 10, player.y + player.height * 0.3);
+        ctx.lineTo(player.x, player.y + player.height * 0.1);
+        ctx.lineTo(player.x, player.y + player.height * 0.9);
+        ctx.fill();
 
-        drawPixelRect(player.x, player.y, player.width, player.height, 'var(--player-color)');
-        drawPixelRect(player.x, player.y + player.height / 2, player.width, player.height / 2, '#4169E1');
-    }
+        ctx.beginPath();
+        ctx.moveTo(player.x + player.width + 10, player.y + player.height * 0.3);
+        ctx.lineTo(player.x + player.width, player.y + player.height * 0.1);
+        ctx.lineTo(player.x + player.width, player.y + player.height * 0.9);
+        ctx.fill();
 
-    function drawBoss() {
-        if (!boss) return;
+        // Cockpit
+        drawRect(player.x + player.width * 0.25, player.y, player.width * 0.5, player.height * 0.4, '#ADD8E6'); // Helles Blau
 
-        // Godzilla (Grüner Block mit Zähnen/Spitzen)
-        drawPixelRect(boss.x, boss.y, boss.width, boss.height, '#4CAF50'); // Grün
-        // Kopf
-        drawPixelRect(boss.x - 10, boss.y + 10, 20, 20, '#4CAF50');
-        // Augen/Mund
-        drawPixelRect(boss.x - 10, boss.y + 15, 5, 5, 'white');
-    }
-
-    function drawProjectiles() {
-        // Plasma-Schüsse
-        for (const shot of plasmaShots) {
-            drawPixelRect(shot.x, shot.y, shot.width, shot.height, shot.color);
-        }
-        // Feuerbälle
-        for (const ball of fireballs) {
-            drawPixelRect(ball.x, ball.y, ball.width, ball.height, ball.color);
-        }
+        // Düsen (hinten)
+        drawRect(player.x + player.width * 0.1, player.y + player.height * 0.9, player.width * 0.3, player.height * 0.1, '#FF4500'); // Orange-Rot
+        drawRect(player.x + player.width * 0.6, player.y + player.height * 0.9, player.width * 0.3, player.height * 0.1, '#FF4500');
     }
 
     function draw() {
-        drawWorld();
-        drawBoss();
-        drawProjectiles();
-        drawPlayer();
+        // Hintergrund löschen
+        ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         
-        if (window.keys.showScore) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-            ctx.fillRect(CANVAS_WIDTH / 2 - 100, CANVAS_HEIGHT / 2 - 40, 200, 80);
-            ctx.fillStyle = 'white';
-            ctx.font = '16px "Press Start 2P"';
-            ctx.textAlign = 'center';
-            ctx.fillText(`PUNKTE: ${score}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 10);
-            ctx.fillText(`LVL: ${currentLevel}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 20);
+        // Kugeln zeichnen
+        for (const ball of balls) {
+            drawBall(ball);
         }
+
+        // Jet zeichnen
+        drawJet();
     }
 
     // ***************************************************************
-    // GAME-CONTROLS & INITIALISIERUNG
+    // GAME-LOOP & OVERLAY
     // ***************************************************************
 
-    function isColliding(r1, r2) {
-        return r1.x < r2.x + r2.width && r1.x + r1.width > r2.x &&
-               r1.y < r2.y + r2.height && r1.y + r1.height > r2.y;
-    }
+    function gameLoop(timestamp) {
+        const deltaTime = timestamp - lastTime;
+        lastTime = timestamp;
 
-    function togglePause() {
-        if (!gameRunning) return;
-        gamePaused = !gamePaused;
-        
-        if (gamePaused) {
-            showOverlay('SPIEL PAUSIERT', 'Drücke P oder die Schaltfläche, um fortzufahren.', 'Weiter', togglePause);
-        } else {
-            hideOverlay();
-            lastTime = performance.now();
+        if (gameRunning) {
+            update(deltaTime);
+            draw();
         }
+
+        animationFrameId = requestAnimationFrame(gameLoop);
     }
     
     function gameOver(win) {
         cancelAnimationFrame(animationFrameId);
         gameRunning = false;
-        gamePaused = true;
-
-        if (win) {
-             showOverlay('LEVEL 10 GESCHAFFT!', 
-                        `DU HAST GODZILLA BESIEGT!<br>Gesamtpunkte: ${score}`, 
-                        'Neues Spiel starten', 
-                        window.restartGame);
+        
+        let title, message;
+        
+        if (win && score >= 100) {
+            title = 'FANTASTISCH! SIEG!';
+            message = `Ziel erreicht (${score} Kugeln) und ${Math.floor(timeLeft)}s Restzeit!<br>Deine Schwierigkeit: ${hudElements.difficulty.textContent}`;
+        } else if (win && timeLeft <= 0) {
+            title = 'ZEIT ABGELAUFEN!';
+            message = `Du hast 2 Minuten überlebt, aber nur ${score} Kugeln gefangen.`;
         } else {
-            showOverlay('SPIEL VORBEI', 
-                        `Zeit abgelaufen oder Leben verloren.<br>Dein Score: ${score}`, 
-                        'Neu starten', 
-                        window.restartGame);
+            title = 'GAME OVER';
+            message = `Eine Kugel hat den Boden berührt.<br>Dein Score: ${score} Kugeln.`;
         }
+        
+        showOverlay(title, message, 'Neues Spiel starten');
     }
 
-    function startGameLoop() {
-        if (gameRunning) cancelAnimationFrame(animationFrameId);
-        gameRunning = true;
-        gamePaused = false;
+    function showOverlay(title, text, buttonText, buttonAction = window.restartGame) {
+        hudElements.overlayTitle.textContent = title;
+        hudElements.overlayText.innerHTML = text;
+        hudElements.overlayButton.textContent = buttonText;
+        hudElements.overlayButton.onclick = buttonAction;
         
-        generateLevel(); 
+        if (gameRunning === false && title !== 'JET BUSTER') {
+            hudElements.difficultySelect.style.display = 'none';
+            hudElements.overlayButton.style.display = 'block';
+        } else {
+            hudElements.difficultySelect.style.display = 'flex';
+            hudElements.overlayButton.style.display = 'none';
+        }
+        
+        hudElements.overlay.style.display = 'flex';
+    }
 
-        lastTime = performance.now();
-        animationFrameId = requestAnimationFrame(gameLoop);
-        updateHUD();
+    function hideOverlay() {
+        hudElements.overlay.style.display = 'none';
     }
     
     window.restartGame = function() {
-        currentLevel = 1;
-        score = 0;
-        playerLife = 100;
-        timeLeft = 180;
-        
-        window.keys.left = window.keys.right = window.keys.up = window.keys.showScore = window.keys.pause = window.keys.shoot = false;
-        keyPressHandled.T = keyPressHandled.P = keyPressHandled.Shoot = false;
-        
-        hideOverlay();
-        startGameLoop(); 
+        showOverlay('JET BUSTER', 'Wähle eine Schwierigkeit, um zu starten.', 'Neu starten', () => {});
     };
 
     // ***************************************************************
     // EVENT LISTENER
     // ***************************************************************
 
+    // Tastatur-Events
     document.addEventListener('keydown', (e) => {
         const key = e.key.toUpperCase();
-        
-        if (key === 'F') window.keys.left = true;
-        if (key === 'G') window.keys.right = true;
-        if (e.code === 'SPACE') { window.keys.up = true; e.preventDefault(); }
-        
-        if (key === 'U' && !keyPressHandled.Shoot) { // U = Schießen
-            shootPlasma();
-            keyPressHandled.Shoot = true; 
-        }
-
-        if (key === 'P' && !keyPressHandled.P) { togglePause(); keyPressHandled.P = true; }
-        if (key === 'T' && !keyPressHandled.T) { window.keys.showScore = true; keyPressHandled.T = true; }
+        if (key === 'A' || e.key === 'ArrowLeft') window.keys.left = true;
+        if (key === 'D' || e.key === 'ArrowRight') window.keys.right = true;
+        if (key === 'W' || e.key === 'ArrowUp') window.keys.up = true;
+        if (key === 'S' || e.key === 'ArrowDown') window.keys.down = true;
     });
 
     document.addEventListener('keyup', (e) => {
         const key = e.key.toUpperCase();
-        
-        if (key === 'F') window.keys.left = false;
-        if (key === 'G') window.keys.right = false;
-        
-        if (key === 'U') keyPressHandled.Shoot = false;
-        if (key === 'P') keyPressHandled.P = false;
-        if (key === 'T') { window.keys.showScore = false; keyPressHandled.T = false; }
+        if (key === 'A' || e.key === 'ArrowLeft') window.keys.left = false;
+        if (key === 'D' || e.key === 'ArrowRight') window.keys.right = false;
+        if (key === 'W' || e.key === 'ArrowUp') window.keys.up = false;
+        if (key === 'S' || e.key === 'ArrowDown') window.keys.down = false;
     });
 
-    document.addEventListener('DOMContentLoaded', () => {
-        // Touch-Listener für Bewegung und Sprung... (wie im Originalcode)
-        const leftBtn = document.getElementById('left-btn');
-        const rightBtn = document.getElementById('right-btn');
-        const jumpBtn = document.getElementById('jump-btn');
-        const shootBtn = document.getElementById('shoot-btn'); // Neuer Schuss-Button
+    // Joystick-Events
+    const joystickHandle = document.getElementById('joystick-handle');
+    const joystickBase = document.getElementById('joystick-base');
+    const joystickArea = document.getElementById('joystick-area');
 
-        function addTouchListeners(btn, key, actionFn = null) {
-            btn.addEventListener('pointerdown', () => {
-                if(actionFn) actionFn(); 
-                else window.keys[key] = true;
-                
-                if (key === 'up') setTimeout(() => window.keys.up = false, 100); 
-            });
-            if (!actionFn) { // Nur für Bewegungstasten
-                btn.addEventListener('pointerup', () => window.keys[key] = false);
-                btn.addEventListener('pointerleave', () => window.keys[key] = false);
-            }
+    let initialHandleX, initialHandleY;
+    let initialPointerX, initialPointerY;
+
+    function getPointerPosition(e) {
+        if (e.touches && e.touches.length > 0) {
+            return { x: e.touches[0].clientX, y: e.touches[0].clientY };
         }
-        
-        addTouchListeners(leftBtn, 'left');
-        addTouchListeners(rightBtn, 'right');
-        addTouchListeners(jumpBtn, 'up');
-        addTouchListeners(shootBtn, 'shoot', shootPlasma);
+        return { x: e.clientX, y: e.clientY };
+    }
 
-        // Start
+    function startDrag(e) {
+        e.preventDefault(); // Verhindert Scrollen oder Zoomen
+        joystickActive = true;
+        const pointerPos = getPointerPosition(e);
+        initialPointerX = pointerPos.x;
+        initialPointerY = pointerPos.y;
+
+        const handleRect = joystickHandle.getBoundingClientRect();
+        initialHandleX = handleRect.left + handleRect.width / 2;
+        initialHandleY = handleRect.top + handleRect.height / 2;
+
+        joystickHandle.style.cursor = 'grabbing';
+    }
+
+    function drag(e) {
+        if (!joystickActive) return;
+        e.preventDefault(); 
+        const pointerPos = getPointerPosition(e);
+
+        let deltaX = pointerPos.x - initialPointerX;
+        let deltaY = pointerPos.y - initialPointerY;
+
+        // Begrenze die Bewegung auf den JOYSTICK_MAX_DIST
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        if (distance > JOYSTICK_MAX_DIST) {
+            const angle = Math.atan2(deltaY, deltaX);
+            deltaX = JOYSTICK_MAX_DIST * Math.cos(angle);
+            deltaY = JOYSTICK_MAX_DIST * Math.sin(angle);
+        }
+
+        joystickOffsetX = deltaX;
+        joystickOffsetY = deltaY;
+
+        // Bewege den Handle visuell (relativ zur Mitte des joystickBase)
+        joystickHandle.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
+    }
+
+    function endDrag() {
+        joystickActive = false;
+        joystickOffsetX = 0;
+        joystickOffsetY = 0;
+        joystickHandle.style.transform = 'translate(-50%, -50%)'; // Handle zurück zur Mitte
+        joystickHandle.style.cursor = 'grab';
+    }
+
+    // Touch-Events für Joystick
+    joystickHandle.addEventListener('pointerdown', startDrag);
+    document.addEventListener('pointermove', drag);
+    document.addEventListener('pointerup', endDrag);
+    document.addEventListener('pointercancel', endDrag); // Falls der Touch abgebrochen wird
+
+    // D-Pad Events
+    const dpadButtons = document.querySelectorAll('#dpad-area .dpad-btn');
+    dpadButtons.forEach(btn => {
+        const key = btn.dataset.key;
+        if (key) {
+            btn.addEventListener('pointerdown', (e) => {
+                e.preventDefault(); 
+                if (key === 'up') window.keys.up = true;
+                if (key === 'down') window.keys.down = true;
+                if (key === 'left') window.keys.left = true;
+                if (key === 'right') window.keys.right = true;
+            });
+            btn.addEventListener('pointerup', () => {
+                if (key === 'up') window.keys.up = false;
+                if (key === 'down') window.keys.down = false;
+                if (key === 'left') window.keys.left = false;
+                if (key === 'right') window.keys.right = false;
+            });
+            btn.addEventListener('pointerleave', () => {
+                // Wenn der Finger vom Button gleitet
+                if (key === 'up') window.keys.up = false;
+                if (key === 'down') window.keys.down = false;
+                if (key === 'left') window.keys.left = false;
+                if (key === 'right') window.keys.right = false;
+            });
+        }
+    });
+
+
+    // Initialisierung des Spiels
+    document.addEventListener('DOMContentLoaded', () => {
         window.restartGame();
     });
-</script>
+  </script>
 </body>
 </html>
-
