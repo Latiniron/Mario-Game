@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Jet Buster: Cockpit Edition</title>
+    <title>Jet Buster: Final Mission</title>
     <style>
         /* CSS-Variablen */
         :root {
@@ -14,7 +14,7 @@
             --star-color-1: #ffd700;
             --star-color-2: #ff8c00;
             --star-color-3: #ff4500;
-            --ball-color: #00CC00;        /* NEU: Hellgrün */
+            --bomb-color: #00CC00;        /* Explosions-Grün (Bombe) */
             --joystick-red: #d9534f;
             --hud-color: #00FF00;        
             --cockpit-color: #0d1a26;    
@@ -187,8 +187,7 @@
                 STATUS: <span style="color:var(--hud-color)" id="status">INIT</span>
             </div>
             <div class="dashboard-display">
-                MISSED: <span id="missed">0</span> / <span id="max-missed">5</span>
-            </div>
+                MISSED: <span id="missed">0</span> / <span id="max-missed">7</span> </div>
         </div>
 
         <div id="joystick-area">
@@ -228,7 +227,11 @@
     const messageTitle = document.getElementById('messageTitle');
     const messageText = document.getElementById('messageText');
     const restartButton = document.getElementById('restartButton');
-    const MAX_MISSED = 5;
+
+    // SPIEL-REGELN
+    const MAX_MISSED = 7;           // ANGEPASST: Max verpasste Objekte
+    const SCORE_PER_STAR = 10;      
+    const MAX_SCORE = 1000;         
 
     // Spiel-Zustand
     let gameRunning = false;
@@ -253,18 +256,17 @@
     };
 
     // Fallende Objekte Parameter
-    const STAR_SIZE = 16; /* ANPASSUNG: Größerer Stern */
-    const BALL_SIZE = 15;
+    const STAR_SIZE = 16;
+    const BOMB_SIZE = 15;
     let objectSpawnTimer = 0;
     const BASE_SPAWN_RATE = 1.0; 
     const STAR_COLORS = ['var(--star-color-1)', 'var(--star-color-2)', 'var(--star-color-3)'];
-    const OBJECT_TYPES = ['star', 'ball'];
+    const OBJECT_TYPES = ['star', 'bomb']; 
     let fallingObjects = []; 
     
     // Joystick-Steuerung
     let joystickOffsetX = 0; 
     const JOYSTICK_MAX_DIST = 30; 
-    // const JOYSTICK_SENSITIVITY = 0.003; /* ENTFERNT: Für Null-Latenz */
 
     // Canvas Größe anpassen
     function resizeCanvas() {
@@ -297,7 +299,7 @@
 
         scoreEl.textContent = score;
         missedEl.textContent = missedCount;
-        maxMissedEl.textContent = MAX_MISSED;
+        maxMissedEl.textContent = MAX_MISSED; // Aktualisiert die Anzeige
         statusEl.textContent = 'READY';
         statusEl.style.color = 'var(--hud-color)';
         startButton.textContent = 'STARTEN';
@@ -352,11 +354,11 @@
         
         while (objectSpawnTimer >= 1 / targetSpawnRate) {
             
-            // ANPASSUNG: 90% Stern (häufig), 10% Ball (selten)
-            const isStar = Math.random() < 0.9; 
-            const type = isStar ? 'star' : 'ball';
+            // 98% Stern, 2% Bombe
+            const isStar = Math.random() < 0.98; 
+            const type = isStar ? 'star' : 'bomb';
 
-            const size = type === 'star' ? STAR_SIZE : BALL_SIZE;
+            const size = type === 'star' ? STAR_SIZE : BOMB_SIZE;
             
             const objectX = Math.random() * (canvas.width - size * 2) + size;
             const baseSpeed = 200; 
@@ -368,7 +370,7 @@
                 radius: size,
                 speed: speed, 
                 type: type,
-                color: type === 'star' ? STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)] : 'var(--ball-color)',
+                color: type === 'star' ? STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)] : 'var(--bomb-color)',
             });
             
             objectSpawnTimer -= 1 / targetSpawnRate;
@@ -376,7 +378,7 @@
     }
 
     function handleInput(deltaTime) {
-        // NEU: Direkte Zuweisung für Null-Latenz
+        // Null-Latenz Steuerung
         let targetXSpeed = joystickOffsetX * JET_SPEED_BASE / JOYSTICK_MAX_DIST;
         player.xSpeed = targetXSpeed;
     }
@@ -409,15 +411,25 @@
             obj.y += obj.speed * (deltaTime / 1000);
 
             if (isCollidingRectCircle(player, { x: obj.x, y: obj.y, radius: obj.radius })) {
-                score++;
+                if (obj.type === 'star') {
+                    score += SCORE_PER_STAR;
+                    if (score >= MAX_SCORE) {
+                        gameOver(true); 
+                        return;
+                    }
+                } else if (obj.type === 'bomb') {
+                    gameOver(false, 'BOMB_HIT'); 
+                    return;
+                }
+                
                 fallingObjects.splice(i, 1); 
             } 
             else if (obj.y - obj.radius > canvas.height) { 
                 missedCount++;
                 fallingObjects.splice(i, 1); 
                 
-                if (missedCount >= MAX_MISSED) {
-                     gameOver();
+                if (missedCount >= MAX_MISSED) { // PRÜFUNG: Wenn 7 Fehlschläge erreicht
+                     gameOver(false, 'MISSED_MAX'); 
                      return;
                 }
             }
@@ -461,7 +473,8 @@
         ctx.fill();
     }
 
-    function drawBall(obj) {
+    function drawBomb(obj) {
+        // Bombe zeichnen (einfacher Kreis in Bombenfarbe)
         ctx.fillStyle = obj.color;
         ctx.beginPath();
         ctx.arc(obj.x, obj.y, obj.radius, 0, Math.PI * 2);
@@ -543,7 +556,7 @@
             if (obj.type === 'star') {
                 drawStar(obj);
             } else {
-                drawBall(obj);
+                drawBomb(obj);
             }
         }
 
@@ -568,17 +581,34 @@
         animationFrameId = requestAnimationFrame(gameLoop);
     }
     
-    function gameOver() {
+    /**
+     * Beendet das Spiel und zeigt eine Meldung an.
+     * @param {boolean} isWin - True, wenn der Spieler gewonnen hat (Max Score).
+     * @param {string} reason - Grund der Niederlage ('BOMB_HIT' oder 'MISSED_MAX').
+     */
+    function gameOver(isWin = false, reason = 'MISSED_MAX') {
         cancelAnimationFrame(animationFrameId);
         gameRunning = false;
         startButton.disabled = false;
         startButton.textContent = 'NEU STARTEN';
         stopButton.disabled = true;
-        statusEl.textContent = 'DESTROYED';
-        statusEl.style.color = 'red';
+        statusEl.textContent = isWin ? 'MISSION COMPLETE' : 'DESTROYED';
+        statusEl.style.color = isWin ? 'yellow' : 'red';
         
-        let message = `Du hast ${missedCount} Objekte verpasst. Dein finaler Score: **${score}**.`;
-        showEndMessage('MISSION FAILED', message, 'NEU STARTEN');
+        let title, message;
+
+        if (isWin) {
+            title = 'MISSION COMPLETE!';
+            message = `Glückwunsch, Pilot! Du hast das Ziel von **${MAX_SCORE}** Punkten erreicht!`;
+        } else if (reason === 'BOMB_HIT') {
+            title = 'TERMINATED!';
+            message = `Dein Jet wurde von einer **feindlichen Bombe** zerstört! Finaler Score: **${score}**.`;
+        } else {
+            title = 'MISSION FAILED';
+            message = `Du hast **${missedCount}** von ${MAX_MISSED} Objekten verpasst. Dein finaler Score: **${score}**.`;
+        }
+        
+        showEndMessage(title, message, 'NEU STARTEN');
     }
 
     function showEndMessage(title, text, buttonText) {
@@ -586,8 +616,7 @@
         messageText.innerHTML = text;
         restartButton.textContent = buttonText;
         
-        // Bei Pause: Starte das Spiel neu (fortsetzen), bei Game Over/Start: initGame (Reset)
-        if (title.includes('FAILED') || title.includes('Willkommen')) {
+        if (title.includes('FAILED') || title.includes('TERMINATED') || title.includes('COMPLETE') || title.includes('Willkommen')) {
             restartButton.onclick = initGame;
         } else {
             restartButton.onclick = startGame;
@@ -662,7 +691,6 @@
 
     document.addEventListener('keyup', (e) => {
         if (!gameRunning) return;
-        // Beim Loslassen muss der Joystick-Offset sofort auf 0 gesetzt werden (Null-Latenz)
         if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft' || e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') joystickOffsetX = 0;
     });
 
@@ -683,7 +711,7 @@
         stopButton.onclick = stopGame;
         
         // Zeige Startanweisung
-        showEndMessage('Willkommen, Pilot!', 'Bereit für den Start? Drücke **STARTEN**!', 'STARTEN');
+        showEndMessage('Willkommen, Pilot!', `Sammle Sterne (10 Punkte) und vermeide Bomben. Du hast max. ${MAX_MISSED} Fehlschläge. Max. Score: ${MAX_SCORE}.`, 'STARTEN');
     });
 </script>
 
