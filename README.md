@@ -1,50 +1,13 @@
-# 🚀 JET BUSTER: Sternenjagd-Challenge
+🚀 To the Moon (Optimierte Arcade-Version)
+​Dieses Dokument bietet eine Kurzeinführung in das Spiel "To the Moon", ein schnelles, responsives Arcade-Spiel, das komplett in einer einzigen HTML-Datei mit JavaScript und Tailwind CSS implementiert wurde.
+​🇩🇪 Einleitung (Deutsch)
+​Herzlich willkommen zur optimierten Arcade-Version von "To the Moon"! Dies ist ein schnelles, responsives HTML5-Spiel, bei dem Sie ein Raumschiff steuern. Ihre Mission: Sammeln Sie Sterne (⭐), um Ihren Punktemultiplikator zu erhöhen und neue Level zu erreichen. Gleichzeitig müssen Sie explosive Bomben (💣) mit präzisen Raketen abwehren, bevor sie Ihr Schiff treffen. Testen Sie Ihre Reflexe und jagen Sie den Highscore!
+​▶️ Spielen Sie jetzt: https://latiniron.github.io/To-the-moon/
 
-Willkommen bei **JET BUSTER**, einem schnellen, arcade-inspirierten Geschicklichkeitsspiel, bei dem du einen wendigen Jet steuerst, um fallende Sterne einzufangen. Halte die Sterne vom Boden fern und erreiche die Zielpunktzahl, bevor die Zeit abläuft!
+​🇬🇧 Introduction (English)
+​Welcome to the optimized arcade version of "To the Moon"! This is a fast, responsive HTML5 game where you pilot a spacecraft. Your mission: Collect stars (⭐) to boost your score multiplier and advance to new levels. Simultaneously, you must shoot down explosive bombs (💣) with precise missiles before they collide with your ship. Test your reflexes and chase the high score!
+​▶️ Play now: https://latiniron.github.io/To-the-moon/
 
-## 🕹️ Jetzt Spielen
-
-Das Spiel ist live und direkt im Browser spielbar:
-
-➡️ **[JET BUSTER spielen](https://latiniron.github.io/To-the-moon/)**
-
----
-
-## 🎯 Spielkonzept & Ziel
-
-Das Hauptziel ist es, innerhalb eines Zeitlimits von **2 Minuten (120 Sekunden)** **100 fallende Sterne** mit deinem Jet einzufangen.
-
-* **Gewonnen:** Du erreichst **100 Punkte** (Sterne).
-* **Zeitlimit:** Das Spiel endet automatisch nach **120 Sekunden**.
-* **Game Over:** Das Spiel endet sofort, wenn ein **Stern den unteren Bildschirmrand** erreicht.
-
----
-
-## ✨ Features & Gameplay
-
-| Feature | Beschreibung |
-| :--- | :--- |
-| **Fliegender Jet** | Der Spieler steuert einen Jet, der sich frei in alle 8 Richtungen (horizontal und vertikal) auf dem Bildschirm bewegen kann. |
-| **Sternenjagd** | Die fallenden Objekte sind **farbige, sternförmige Kugeln**. Jeder eingefangene Stern zählt als 1 Punkt. |
-| **7 Dynamische Level** | Das Spiel steigert die Herausforderung über **7 aufeinanderfolgende Level**. Alle **15 Sekunden** wechselt das Level, was die **Geschwindigkeit und die Spawn-Rate** der fallenden Sterne erhöht. |
-| **Wählbare Schwierigkeit** | Vor Spielbeginn wählst du zwischen **LEICHT, MITTEL** und **SCHWER**. Diese Einstellung skaliert die Geschwindigkeit der Sterne zusätzlich. |
-| **Konsolen-Layout** | Die Steuerung ist primär für Touch-Geräte optimiert und simuliert eine Konsolen-Erfahrung. |
-
----
-
-## ⚙️ Steuerung
-
-Die primäre Steuerung erfolgt über den zentrierten, **roten Joystick** im unteren Konsolenbereich, der eine intuitive **8-Wege-Bewegung** (hoch, runter, links, rechts und diagonal) des Jets ermöglicht.
-
-| Steuerung | Eingabe (Tastatur-Backup) | Funktion |
-| :--- | :--- | :--- |
-| **Joystick-Drag** | N/A | Steuert die X- und Y-Achse des Jets. |
-
----
-
-## 🛠️ Technische Details
-
-* **Technologie:** HTML5 Canvas, JavaScript, CSS.
-* **Entwickler:** *[Deinen Namen oder GitHub-Handle hier einfügen]*
-* **Status:** Funktionales Prototyp-Spiel mit implementierter Kernlogik und UI/UX-Anpassung.
-
+​🇪🇸 Introducción (Español)
+​¡Bienvenido/a a la versión arcade optimizada de "To the Moon"! Este es un juego HTML5 rápido y adaptable donde controlas una nave espacial. Tu misión: Recoge estrellas (⭐) para aumentar tu multiplicador de puntuación y alcanzar nuevos niveles. Al mismo tiempo, debes derribar bombas (💣) explosivas con misiles precisos antes de que choquen con tu nave. ¡Pon a prueba tus reflejos y persigue la puntuación más alta!
+​▶️ Juega ahora: https://latiniron.github.io/To-the-moon/
