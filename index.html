@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* NEW: Orbitron for the title, Inter for the rest */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Orbitron:wght@700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Orbitron:wght<-700&display=swap');
         
         body {
             font-family: 'Inter', sans-serif;
@@ -406,9 +406,10 @@
         
         let currentStarValue = STAR_BASE_VALUE; 
 
-        // Attempts to load the high score from browser storage.
-        if (sessionStorage.getItem('highscore')) {
-            highscore = parseInt(sessionStorage.getItem('highscore'));
+        // Attempts to load the high score from persistent browser storage (localStorage).
+        // CHANGE: Switched from sessionStorage to localStorage for permanent storage.
+        if (localStorage.getItem('highscore')) {
+            highscore = parseInt(localStorage.getItem('highscore'));
         }
 
         // Set the Canvas size responsively
@@ -496,7 +497,8 @@
             if (keys['ArrowLeft']) jet.x -= jetSpeed;
             if (keys['ArrowRight']) jet.x += jetSpeed;
             if (keys['ArrowUp']) jet.y -= jetSpeed;
-            if (keys['ArrowDown']) jet.x += jetSpeed; // Note: ArrowDown controls movement (x, not y)
+            // FIX: ArrowDown now controls downward movement (y-axis)
+            if (keys['ArrowDown']) jet.y += jetSpeed; 
 
             // Boundary
             if (jet.x < 0) jet.x = 0;
@@ -725,9 +727,10 @@
             let endMessage = message;
 
             // Update Highscore
+            // CHANGE: Use localStorage instead of sessionStorage for permanent highscore
             if (score > highscore) {
                 highscore = score;
-                sessionStorage.setItem('highscore', highscore);
+                localStorage.setItem('highscore', highscore);
                 endMessage = `NEW HIGHSCORE! ${score} Points!`;
             } else if (message.includes('Aborted')) {
                 endMessage = `Game Aborted. Your Score: ${score}. (HS: ${highscore})`;
@@ -755,8 +758,9 @@
             scoreFlashes = []; // Reset flashes
             
             // Load and display high score
-            if (sessionStorage.getItem('highscore')) {
-                highscore = parseInt(sessionStorage.getItem('highscore'));
+            // CHANGE: Use localStorage instead of sessionStorage for permanent highscore
+            if (localStorage.getItem('highscore')) {
+                highscore = parseInt(localStorage.getItem('highscore'));
             }
 
             // Reset Dashboard displays
