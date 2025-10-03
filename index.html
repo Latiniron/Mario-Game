@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>To the Moon</title>
-    <!-- Tailwind CSS wird geladen -->
+    <!-- Loading Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* NEU: Orbitron für den Titel, Inter für den Rest */
+        /* NEW: Orbitron for the title, Inter for the rest */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Orbitron:wght@700&display=swap');
         
         body {
@@ -36,19 +36,19 @@
             min-height: 0;
         }
 
-        /* Missionszentrale (Dashboard) - Kompakter */
+        /* Mission Control (Dashboard) - Compact */
         #mission-zentrale {
             width: 100%;
-            padding: 10px 15px; /* Reduziertes Padding */
+            padding: 10px 15px; /* Reduced Padding */
             background-color: #0f162a; 
             border-bottom: 4px solid #336699; 
             flex-shrink: 0; 
         }
 
-        /* NEUE SCHRIFTART FÜR TITEL */
+        /* NEW FONT FOR TITLE */
         #mission-zentrale h1 {
             font-family: 'Orbitron', sans-serif; 
-            font-size: 1.8rem; /* Etwas kleiner */
+            font-size: 1.8rem; /* Slightly smaller */
             font-weight: 700;
             color: #b0e0e6; 
             text-shadow: 0 0 5px #00FFFF, 0 0 10px #008080;
@@ -57,7 +57,7 @@
         .data-panel {
             background-color: #0b101c; 
             border-radius: 8px;
-            padding: 8px 12px; /* Reduziertes Padding */
+            padding: 8px 12px; /* Reduced Padding */
             display: flex;
             flex-direction: column; 
             align-items: flex-start;
@@ -66,17 +66,17 @@
             box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
             border: 2px solid #2f71b966;
             color: #c4d7e9; 
-            height: 60px; /* Reduzierte Höhe */
+            height: 60px; /* Reduced height */
         }
         .data-panel-title {
             color: #79a1d1; 
             font-weight: 700;
-            font-size: 0.75rem; /* Etwas kleiner */
+            font-size: 0.75rem; /* Slightly smaller */
             line-height: 1;
             margin-bottom: 2px;
         }
         
-        /* Styling für den Canvas-Bereich (Spielfeld) */
+        /* Styling for the Canvas area (Playfield) */
         #game-canvas {
             display: block;
             background-color: #030610; 
@@ -88,7 +88,7 @@
 
 
         /* ------------------------------------- */
-        /* STEUERUNGSKONSOLE - Kompakter */
+        /* CONTROL CONSOLE - Compact */
         /* ------------------------------------- */
         #controls {
             display: flex; 
@@ -96,7 +96,7 @@
             align-items: center;
             width: 100%;
             max-width: 2000px; 
-            padding: 8px 10px; /* Reduziertes Padding */
+            padding: 8px 10px; /* Reduced Padding */
             box-sizing: border-box;
             background-color: #141c30; 
             border-top: 4px solid #336699; 
@@ -126,16 +126,16 @@
             border: none;
             border-radius: 8px; 
             cursor: pointer;
-            font-size: 0.8rem; /* Kleiner */
+            font-size: 0.8rem; /* Smaller */
             font-weight: 900; 
             transition: background-color 0.1s, transform 0.1s;
             user-select: none;
-            padding: 8px 12px; /* Kleiner */
+            padding: 8px 12px; /* Smaller */
             width: 80px; 
             text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
         }
 
-        /* Konsole-Style für Pause und Abbruch */
+        /* Console style for Pause and Abort */
         #pause-button { 
             background: linear-gradient(180deg, #f9c258 0%, #f7a325 100%); 
             color: #1a1a2e; 
@@ -154,15 +154,15 @@
         }
         
         /* ------------------------------------- */
-        /* FADENKREUZ-JOYSTICK (LINKE SEITE) - Kompakter */
+        /* CROSSHAIR JOYSTICK (LEFT SIDE) - Compact */
         /* ------------------------------------- */
         #joystick-cross {
             display: grid;
             grid-template-columns: repeat(3, 1fr); 
             grid-template-rows: repeat(3, 1fr); 
             gap: 2px; 
-            width: 110px; /* Reduziert */
-            height: 110px; /* Reduziert */
+            width: 110px; /* Reduced */
+            height: 110px; /* Reduced */
             background-color: #1f2740; 
             border-radius: 15px;
             padding: 5px;
@@ -175,7 +175,7 @@
             background: linear-gradient(180deg, #38466b 0%, #26334f 100%);
             color: white;
             box-shadow: 0 3px #182136; 
-            font-size: 1.2rem; /* Kleiner */
+            font-size: 1.2rem; /* Smaller */
             padding: 0;
             height: 100%;
             display: flex; 
@@ -190,7 +190,7 @@
             box-shadow: 0 1.5px #182136;
         }
 
-        /* Positionierung innerhalb des 3x3 Grids */
+        /* Positioning within the 3x3 Grid */
         #up-button { grid-column: 2; grid-row: 1; }
         #left-button { grid-column: 1; grid-row: 2; }
         #joystick-center { 
@@ -198,7 +198,7 @@
             grid-row: 2; 
             background-color: #0d1733; 
             color: #4CAF50; 
-            font-size: 1.5rem; /* Kleiner */
+            font-size: 1.5rem; /* Smaller */
             box-shadow: inset 0 0 15px rgba(76, 175, 80, 0.7); 
             pointer-events: none; 
             border-radius: 50%;
@@ -211,16 +211,16 @@
         #down-button { grid-column: 2; grid-row: 3; }
 
         /* ------------------------------------- */
-        /* FIRE BUTTON (RECHTE SEITE) - Kompakter */
+        /* FIRE BUTTON (RIGHT SIDE) - Compact */
         /* ------------------------------------- */
         #fire-button { 
-            width: 90px; /* Reduziert */
-            height: 90px; /* Reduziert */
+            width: 90px; /* Reduced */
+            height: 90px; /* Reduced */
             border-radius: 50%; 
             background: linear-gradient(180deg, #ff6675 0%, #e03f50 100%); 
             color: white; 
             box-shadow: 0 8px #a02837, inset 0 0 15px rgba(255, 255, 255, 0.3); 
-            font-size: 1.1rem; /* Kleiner */
+            font-size: 1.1rem; /* Smaller */
             margin-right: 16px; 
             display: flex;
             align-items: center;
@@ -236,7 +236,7 @@
         }
 
         
-        /* Nachricht und Neustart-Tasten */
+        /* Message and Restart Buttons */
         #message-box {
             position: fixed;
             top: 50%;
@@ -272,53 +272,53 @@
 <body>
 
     <div id="game-container">
-        <!-- Missionszentrale (Dashboard) -->
+        <!-- Mission Control (Dashboard) -->
         <div id="mission-zentrale">
             
-            <!-- Row 1: Titel (Orbitron) -->
+            <!-- Row 1: Title (Orbitron) -->
             <div class="flex justify-start items-end mb-2">
                 <h1 class="font-extrabold text-[#79a1d1]">
                     TO THE MOON
                 </h1>
             </div>
 
-            <!-- Row 2: Haupt-Statistiken (Score, Level, Bomben, Sterne-Ziel) -->
+            <!-- Row 2: Main Statistics (Score, Highscore, Level, Bomb Hits) -->
             <div class="grid grid-cols-4 gap-2">
                 
-                <!-- Aktueller Score -->
+                <!-- Current Score -->
                 <div class="data-panel">
                     <span class="data-panel-title">SCORE</span> 
                     <span id="score-display" class="text-xl text-yellow-300 font-extrabold">0</span>
                 </div>
                 
-                <!-- Highscore NEU -->
+                <!-- Highscore NEW -->
                 <div class="data-panel">
                     <span class="data-panel-title">HIGHSCORE</span> 
                     <span id="highscore-display" class="text-xl text-yellow-500 font-extrabold">0</span>
                 </div>
 
-                <!-- Level & Multiplikator -->
+                <!-- Level & Multiplier -->
                 <div class="data-panel">
                     <span class="data-panel-title">LEVEL / MULTI</span> 
                     <span id="level-display" class="text-xl text-green-400 font-extrabold">1x</span>
                 </div>
                 
-                <!-- Bomben-Hits -->
+                <!-- Bomb Hits -->
                 <div class="data-panel">
-                    <span class="data-panel-title">BOMBEN HITS</span> 
+                    <span class="data-panel-title">BOMB HITS</span> 
                     <span id="bombs-hit-display" class="text-xl text-red-400 font-extrabold">0 / 10</span>
                 </div>
             </div>
         </div>
         
-        <!-- Der Canvas für das eigentliche Spiel (jetzt größer) -->
+        <!-- The Canvas for the actual game (now larger) -->
         <canvas id="game-canvas"></canvas>
     </div>
 
-    <!-- Steuerung und Action-Buttons (Kompakt) -->
+    <!-- Controls and Action Buttons (Compact) -->
     <div id="controls">
         
-        <!-- Linker Griff: Joystick Crosshair (D-Pad) -->
+        <!-- Left Grip: Joystick Crosshair (D-Pad) -->
         <div id="left-grip">
             <div id="joystick-cross">
                 <button class="control-button joystick-button" id="up-button" ontouchstart="setKey(true, 'ArrowUp')" ontouchend="setKey(false, 'ArrowUp')" onmousedown="setKey(true, 'ArrowUp')" onmouseup="setKey(false, 'ArrowUp')">⬆️</button>
@@ -331,22 +331,22 @@
             </div>
         </div>
 
-        <!-- Mittlere Aktionen: Pause/Abort -->
+        <!-- Center Actions: Pause/Abort -->
         <div id="center-actions">
             <button class="action-button" id="pause-button" onclick="togglePause()">PAUSE</button>
-            <button class="action-button" id="abort-button" onclick="endGame('Spiel Abgebrochen')">ABBRUCH</button>
+            <button class="action-button" id="abort-button" onclick="endGame('Game Aborted')">ABORT</button>
         </div>
 
-        <!-- Rechter Griff: Feuerknopf -->
+        <!-- Right Grip: Fire Button -->
         <div id="right-grip">
-            <button class="action-button" id="fire-button" onclick="fireMissile()">FEUER</button>
+            <button class="action-button" id="fire-button" onclick="fireMissile()">FIRE</button>
         </div>
     </div>
 
-    <!-- Nachrichtenfach (z.B. für Game Over) -->
+    <!-- Message Box (e.g., for Game Over) -->
     <div id="message-box">
         <div id="message-text" class="text-2xl font-bold mb-6 text-white"></div>
-        <button id="restart-button">Neustart</button>
+        <button id="restart-button">Restart</button>
     </div>
 
     <script>
@@ -354,11 +354,11 @@
         // JavaScript Game Logic
         // =======================================================================
 
-        // 1. Initialisierung und Konstanten
+        // 1. Initialization and Constants
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
-        const scoreDisplay = document.getElementById('score-display'); // NEU
-        const highscoreDisplay = document.getElementById('highscore-display'); // NEU
+        const scoreDisplay = document.getElementById('score-display'); // NEW
+        const highscoreDisplay = document.getElementById('highscore-display'); // NEW
         const levelDisplay = document.getElementById('level-display');
         const bombsHitDisplay = document.getElementById('bombs-hit-display');
         const messageBox = document.getElementById('message-box');
@@ -366,9 +366,9 @@
         const restartButton = document.getElementById('restart-button');
         const pauseButton = document.getElementById('pause-button');
         
-        // Konstanten für das Spiel
+        // Game Constants
         const JET_SIZE = 40;
-        // Geschwindigkeiten (um 1x reduziert, wie gewünscht)
+        // Speeds (reduced by 1x, as requested)
         const INITIAL_JET_SPEED = 5; 
         const INITIAL_STAR_SPEED = 2;
         const INITIAL_BOMB_SPEED = 3;
@@ -396,60 +396,60 @@
         let isPaused = false;
         let gameLoopId;
         
-        // NEU: Für den bewegten Hintergrund
+        // NEW: For the moving background
         let backgroundStars = [];
         const NUM_BACKGROUND_STARS = 100;
         const BACKGROUND_STAR_SPEED = 1;
 
-        // NEU: Für das visuelle Feedback (Score-Popups)
+        // NEW: For visual feedback (Score Popups)
         let scoreFlashes = [];
         
         let currentStarValue = STAR_BASE_VALUE; 
 
-        // Versucht, den Highscore aus dem Browser-Speicher zu laden.
+        // Attempts to load the high score from browser storage.
         if (sessionStorage.getItem('highscore')) {
             highscore = parseInt(sessionStorage.getItem('highscore'));
         }
 
-        // Die Größe des Canvas responsiv einstellen
+        // Set the Canvas size responsively
         function resizeCanvas() {
             const container = document.getElementById('game-container');
             const missionZentrale = document.getElementById('mission-zentrale');
             const controls = document.getElementById('controls');
 
-            // 1. Hole die tatsächliche Höhe der festen Elemente
+            // 1. Get the actual height of the fixed elements
             let fixedHeight = missionZentrale.offsetHeight + controls.offsetHeight;
             
-            // 2. Berechne die maximale verfügbare Höhe im Viewport
+            // 2. Calculate the maximum available height in the viewport
             const calculatedHeight = window.innerHeight - fixedHeight - 1;
             
-            // 3. Setze die Canvas-Eigenschaften
+            // 3. Set the Canvas properties
             canvas.width = container.clientWidth; 
             canvas.height = calculatedHeight; 
             
-            // Jet-Position zurücksetzen
+            // Reset jet position
             jet.x = canvas.width / 2 - jet.size / 2;
             jet.y = canvas.height - jet.size - 10;
 
-            // Hintergrundsterne neu initialisieren
+            // Re-initialize background stars
             initializeBackgroundStars();
         }
 
-        // NEU: Initialisierung des Sternen-Hintergrunds
+        // NEW: Initialization of the star background
         function initializeBackgroundStars() {
             backgroundStars = [];
             for (let i = 0; i < NUM_BACKGROUND_STARS; i++) {
                 backgroundStars.push({
                     x: Math.random() * canvas.width,
                     y: Math.random() * canvas.height,
-                    size: Math.random() * 2 + 1, // Größe zwischen 1 und 3
-                    opacity: Math.random() * 0.8 + 0.2 // Deckkraft zwischen 0.2 und 1.0
+                    size: Math.random() * 2 + 1, // Size between 1 and 3
+                    opacity: Math.random() * 0.8 + 0.2 // Opacity between 0.2 and 1.0
                 });
             }
         }
 
 
-        // 2. Eingabesteuerung
+        // 2. Input Control
         function setKey(isPressed, code) {
             keys[code] = isPressed;
         }
@@ -468,14 +468,14 @@
             if (!gameRunning) return;
 
             isPaused = !isPaused;
-            pauseButton.textContent = isPaused ? 'WEITER' : 'PAUSE';
+            pauseButton.textContent = isPaused ? 'RESUME' : 'PAUSE'; // RESUME is translated from WEITER
 
             if (!isPaused) {
                 gameLoopId = requestAnimationFrame(gameLoop);
             }
         }
 
-        // Raketen Logik
+        // Missile Logic
         function fireMissile() {
             if (!gameRunning || isPaused) return;
 
@@ -489,16 +489,16 @@
             missiles.push(missile);
         }
 
-        // 3. Jet-Logik
+        // 3. Jet Logic
         function updateJet() {
             const jetSpeed = INITIAL_JET_SPEED + currentLevel * 1.5; 
 
             if (keys['ArrowLeft']) jet.x -= jetSpeed;
             if (keys['ArrowRight']) jet.x += jetSpeed;
             if (keys['ArrowUp']) jet.y -= jetSpeed;
-            if (keys['ArrowDown']) jet.x += jetSpeed;
+            if (keys['ArrowDown']) jet.x += jetSpeed; // Note: ArrowDown controls movement (x, not y)
 
-            // Begrenzung
+            // Boundary
             if (jet.x < 0) jet.x = 0;
             if (jet.x > canvas.width - jet.size) jet.x = canvas.width - jet.size;
             if (jet.y < 0) jet.y = 0;
@@ -506,15 +506,15 @@
         }
 
         function drawJet() {
-            // ALT: Jet Thruster (Antriebsstrahl) wurde hier entfernt.
-            // Der Triebwerks-Schatten und das Dreieck wurden entfernt, um nur das Emoji anzuzeigen.
+            // OLD: Jet Thruster (propulsion jet) removed here.
+            // The engine shadow and triangle were removed to only show the emoji.
 
             // Jet Emoji (Space Shuttle)
             ctx.font = `${jet.size}px sans-serif`;
             ctx.fillText("🚀", jet.x, jet.y + jet.size * 0.8);
         }
 
-        // 4. Objekt-Logik
+        // 4. Object Logic
         function spawnObject(type) {
             const size = (type === 'star') ? 20 : 30; 
             const object = {
@@ -536,7 +536,7 @@
             bombs.forEach(bomb => bomb.y += bomb.speed);
             missiles.forEach(m => m.y -= m.speed);
             
-            // NEU: Hintergrundsterne bewegen und "wrappen"
+            // NEW: Move and "wrap" background stars
             backgroundStars.forEach(star => {
                 star.y += BACKGROUND_STAR_SPEED;
                 if (star.y > canvas.height) {
@@ -545,26 +545,26 @@
                 }
             });
 
-            // NEU: Score-Flashes updaten (bewegen sich nach oben und verblassen)
+            // NEW: Update score flashes (move up and fade)
             scoreFlashes.forEach(flash => {
-                flash.y -= 1; // Bewegung nach oben
-                flash.alpha -= 0.02; // Verblassen
+                flash.y -= 1; // Move up
+                flash.alpha -= 0.02; // Fade out
             });
-            scoreFlashes = scoreFlashes.filter(flash => flash.alpha > 0); // Entfernen, wenn unsichtbar
+            scoreFlashes = scoreFlashes.filter(flash => flash.alpha > 0); // Remove when invisible
 
 
-            // Sterne und Bomben, die den unteren Rand erreichen, werden einfach entfernt
+            // Stars and bombs that reach the bottom edge are simply removed
             stars = stars.filter(star => star.y < canvas.height); 
             bombs = bombs.filter(bomb => bomb.y < canvas.height);
             missiles = missiles.filter(m => m.y > 0); 
             
-            // Spielende prüfen
+            // Check for game end
             if (bombsHit >= MAX_BOMBS_ALLOWED) {
-                endGame(`Game Over! Du wurdest ${MAX_BOMBS_ALLOWED} Mal getroffen.`);
+                endGame(`Game Over! You were hit ${MAX_BOMBS_ALLOWED} times.`);
                 return;
             }
             
-            // Erzeuge neue Objekte
+            // Generate new objects
             if (frameCount % STAR_SPAWN_RATE === 0) {
                 spawnObject('star');
             }
@@ -573,7 +573,7 @@
             }
         }
 
-        // NEU: Zeichnen des Sternen-Hintergrunds
+        // NEW: Drawing the star background
         function drawBackground() {
             ctx.fillStyle = '#030610';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -589,23 +589,23 @@
 
         function drawObjects() {
             ctx.textAlign = 'center';
-            // Zeichne Sterne (⭐) und Bomben (💣)
+            // Draw Stars (⭐) and Bombs (💣)
             stars.forEach(star => {
                 ctx.font = `${star.size}px sans-serif`;
-                ctx.fillText("⭐", star.x + star.size / 2, star.y + star.size * 0.8); // 0.8 für bessere Zentrierung des Emojis
+                ctx.fillText("⭐", star.x + star.size / 2, star.y + star.size * 0.8); // 0.8 for better emoji centering
             });
             bombs.forEach(bomb => {
                 ctx.font = `${bomb.size}px sans-serif`;
                 ctx.fillText("💣", bomb.x + bomb.size / 2, bomb.y + bomb.size * 0.8);
             });
 
-            // Raketen zeichnen
+            // Draw Missiles
             missiles.forEach(m => {
-                ctx.fillStyle = '#dc3545'; /* Raketenfarbe: Rot */
+                ctx.fillStyle = '#dc3545'; /* Missile Color: Red */
                 ctx.fillRect(m.x, m.y, m.width, m.height);
             });
 
-            // NEU: Score-Flashes zeichnen
+            // NEW: Draw score flashes
             scoreFlashes.forEach(flash => {
                 ctx.fillStyle = `rgba(${flash.color}, ${flash.alpha})`;
                 ctx.font = 'bold 24px Inter, sans-serif';
@@ -613,20 +613,20 @@
             });
         }
 
-        // 5. Kollisions- und Score-Logik
+        // 5. Collision and Score Logic
         function createScoreFlash(x, y, text, isPositive) {
             scoreFlashes.push({
                 x: x,
                 y: y,
                 text: text,
                 alpha: 1.0,
-                color: isPositive ? '124, 252, 0' : '255, 0, 0' // Grün oder Rot
+                color: isPositive ? '124, 252, 0' : '255, 0, 0' // Green or Red
             });
         }
 
         function checkCollision(objA, objB) {
-            // Vereinfachte Rechteckkollisionsprüfung
-            // Da Emojis etwas kleiner wirken, nehmen wir eine innere Box (80%) für Jet und Objekte
+            // Simplified rectangle collision check
+            // Since emojis appear slightly smaller, we use an inner box (80%) for the jet and objects
             const padding = 0.2; 
             const jetInnerSize = objA.size * (1 - padding);
             const jetInnerX = objA.x + objA.size * (padding / 2);
@@ -643,7 +643,7 @@
         }
         
         function checkMissileCollision(missile, obj) {
-            // Kollisionsprüfung für Rakete (Rechteck) vs. Objekt (Quadrat)
+            // Collision check for missile (rectangle) vs. object (square)
             const objX = obj.x;
             const objY = obj.y;
             const objS = obj.size;
@@ -658,42 +658,42 @@
             if (currentLevelStars >= LEVEL_STAR_GOAL) {
                 currentLevelStars = 0; 
                 
-                // Erhöht das Level nur bis zum Maximum
+                // Increases the level only up to the maximum
                 if (currentLevel < MAX_LEVEL_MULTIPLIER) {
                     currentLevel++;
                 }
                 
-                // Aktuellen Sternewert neu berechnen
+                // Recalculate current star value
                 currentStarValue = STAR_BASE_VALUE * currentLevel;
             }
         }
 
 
         function handleCollisions() {
-            // 1. Jet vs. Sterne
+            // 1. Jet vs. Stars
             for (let i = stars.length - 1; i >= 0; i--) {
                 const star = stars[i];
                 if (checkCollision(jet, star)) { 
                     score += currentStarValue; 
                     currentLevelStars++;
-                    createScoreFlash(star.x + star.size / 2, star.y, `+${currentStarValue}`, true); // NEU: Flash
+                    createScoreFlash(star.x + star.size / 2, star.y, `+${currentStarValue}`, true); // NEW: Flash
                     stars.splice(i, 1);
                     checkLevelUp(); 
                 }
             }
 
-            // 2. Jet vs. Bomben
+            // 2. Jet vs. Bombs
             for (let i = bombs.length - 1; i >= 0; i--) {
                 const bomb = bombs[i];
                 if (checkCollision(jet, bomb)) {
                     score = Math.max(0, score - BOMB_PENALTY); 
                     bombsHit++; 
-                    createScoreFlash(bomb.x + bomb.size / 2, bomb.y, `-${BOMB_PENALTY}`, false); // NEU: Flash
+                    createScoreFlash(bomb.x + bomb.size / 2, bomb.y, `-${BOMB_PENALTY}`, false); // NEW: Flash
                     bombs.splice(i, 1); 
                 }
             }
 
-            // 3. Raketen vs. Bomben
+            // 3. Missiles vs. Bombs
             for (let m = missiles.length - 1; m >= 0; m--) {
                 const missile = missiles[m];
                 for (let b = bombs.length - 1; b >= 0; b--) {
@@ -701,7 +701,7 @@
                     
                     if (checkMissileCollision(missile, bomb)) {
                         score += 5; 
-                        createScoreFlash(bomb.x + bomb.size / 2, bomb.y, `+5`, true); // NEU: Flash
+                        createScoreFlash(bomb.x + bomb.size / 2, bomb.y, `+5`, true); // NEW: Flash
                         bombs.splice(b, 1);
                         missiles.splice(m, 1);
                         break; 
@@ -709,14 +709,14 @@
                 }
             }
             
-            // Dashboard-Aktualisierungen
-            scoreDisplay.textContent = score; // NEU
-            highscoreDisplay.textContent = highscore; // NEU
+            // Dashboard updates
+            scoreDisplay.textContent = score; // NEW
+            highscoreDisplay.textContent = highscore; // NEW
             bombsHitDisplay.textContent = `${bombsHit} / ${MAX_BOMBS_ALLOWED}`;
             levelDisplay.textContent = `${currentLevel}x`;
         }
         
-        // 6. Spielzustands-Logik
+        // 6. Game State Logic
         function endGame(message) {
             gameRunning = false;
             isPaused = true;
@@ -724,22 +724,24 @@
 
             let endMessage = message;
 
-            // Highscore aktualisieren
+            // Update Highscore
             if (score > highscore) {
                 highscore = score;
                 sessionStorage.setItem('highscore', highscore);
-                endMessage = `NEUER HIGHSCORE! ${score} Punkte!`;
+                endMessage = `NEW HIGHSCORE! ${score} Points!`;
+            } else if (message.includes('Aborted')) {
+                endMessage = `Game Aborted. Your Score: ${score}. (HS: ${highscore})`;
             } else {
-                endMessage = `${message} Dein Score: ${score}. (HS: ${highscore})`;
+                endMessage = `${message} Your Score: ${score}. (HS: ${highscore})`;
             }
 
             messageText.textContent = endMessage;
             messageBox.style.display = 'block';
-            pauseButton.textContent = 'PAUSE / WEITER';
+            pauseButton.textContent = 'PAUSE / RESUME';
         }
         
         function startGame() {
-            // Setze den Spielzustand zurück
+            // Reset the game state
             score = 0;
             currentLevel = 1;
             currentLevelStars = 0;
@@ -750,16 +752,16 @@
             missiles = [];
             keys = {};
             frameCount = 0;
-            scoreFlashes = []; // NEU: Flashes zurücksetzen
+            scoreFlashes = []; // Reset flashes
             
-            // Highscore laden und anzeigen
+            // Load and display high score
             if (sessionStorage.getItem('highscore')) {
                 highscore = parseInt(sessionStorage.getItem('highscore'));
             }
 
-            // Dashboard-Anzeigen zurücksetzen
-            scoreDisplay.textContent = score; // NEU
-            highscoreDisplay.textContent = highscore; // NEU
+            // Reset Dashboard displays
+            scoreDisplay.textContent = score; // NEW
+            highscoreDisplay.textContent = highscore; // NEW
             levelDisplay.textContent = `${currentLevel}x`;
             bombsHitDisplay.textContent = `${bombsHit} / ${MAX_BOMBS_ALLOWED}`;
 
@@ -769,43 +771,43 @@
             pauseButton.textContent = 'PAUSE';
 
             resizeCanvas(); 
-            initializeBackgroundStars(); // NEU: Hintergrund initialisieren
+            initializeBackgroundStars(); // Initialize background
             
             gameLoopId = requestAnimationFrame(gameLoop);
         }
 
-        // 7. Hauptspielschleife
+        // 7. Main Game Loop
         function gameLoop() {
             if (!gameRunning || isPaused) {
                 return;
             }
 
-            // 1. Spielfeld löschen und Hintergrund zeichnen
-            drawBackground(); // NEU
+            // 1. Clear playfield and draw background
+            drawBackground(); // NEW
 
-            // 2. Objekte aktualisieren
+            // 2. Update objects
             updateObjects();
 
-            // 3. Jet-Position aktualisieren
+            // 3. Update jet position
             updateJet();
 
-            // 4. Kollisionen prüfen
+            // 4. Check collisions
             handleCollisions();
 
-            // 5. Objekte zeichnen
+            // 5. Draw objects
             drawObjects();
 
-            // 6. Jet zeichnen (ohne Triebwerk)
+            // 6. Draw jet (without thruster)
             drawJet();
 
-            // 7. Nächsten Frame anfordern
+            // 7. Request next frame
             frameCount++;
             gameLoopId = requestAnimationFrame(gameLoop);
         }
 
-        // Starte das Spiel, sobald das Fenster geladen ist
+        // Start the game once the window is loaded
         window.addEventListener('load', () => {
-            // Wir müssen die Größe bei der Initialisierung und bei Größenänderungen anpassen
+            // We need to adjust the size upon initialization and resizing
             window.addEventListener('resize', resizeCanvas);
             startGame();
         });
